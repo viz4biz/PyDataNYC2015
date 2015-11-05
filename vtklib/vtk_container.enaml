@@ -1,0 +1,60 @@
+"""
+VTK Container
+"""
+
+from enaml.widgets.api import VTKCanvas, Container, Label, ObjectCombo, PushButton
+from enaml.layout.api import hbox, spacer, vbox, align
+from vtk_surface_model import VTKSurface3DModelController
+from utils import load_icon
+from enaml.widgets.color_dialog import ColorDialog
+
+
+def getRenderModel( view=None, data=None, properties=None, **kwargs ):
+    ''' get surface model given data and properties '''
+    return VTKSurface3DModelController( data = data,
+                                        numOfRenderers = kwargs.get( 'renderer_views', 1 ),
+                                        view = view,
+                                        customBgs = kwargs.get( 'backgrounds', { 0: ( 0.1, 0.2, 0.3 ), } ),
+                                        remapData = True,
+                                        **properties )
+
+
+enamldef VTKContainer( Container ): vtk_cont:
+    ''' vtk container that encapsulates VTKCanvas for surface visualization '''
+
+    # settable by user
+    attr plot_data
+    attr properties
+
+    # calculated or settable that includes data and properties
+    attr model_controller << getRenderModel( vtk_view, plot_data, properties )
+
+    padding = 5
+    constraints = [ vbox( vtk_view, controlls ) ]
+
+    VTKCanvas: vtk_view:
+        renderers << model_controller.get_renderers()
+
+    Container: controlls:
+
+        constraints = [ hbox( l, b, l2, o, spacer ), align( 'v_center', l, l2, b, o ) ]
+        Label: l:
+            text = 'Select Background:'
+
+        ObjectCombo: o:
+            items = [ 'TrackBallCamera', 'TrackBallActor', 'JoystickCamera', 'JoystickActor', 'Terrain' ]
+            selected = 'TrackBallCamera'
+            selected ::
+                model_controller.set_interactor_style( selected )
+
+        Label: l2:
+            text = 'Select Interactor'
+
+        PushButton: b:
+            text = 'Show'
+            icon = load_icon('plus.png')
+            clicked ::
+                c = ColorDialog.get_color()
+                if c:
+                    colors = ( c.red/255., c.green/255., c.blue/255. )
+                    model_controller.set_background( colors )

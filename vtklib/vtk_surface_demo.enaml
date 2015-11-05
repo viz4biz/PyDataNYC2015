@@ -1,0 +1,88 @@
+"""
+VTk surface demo
+"""
+
+from atom.api import Atom, List, Typed, Value, Dict, Str
+from enaml.widgets.color_dialog import ColorDialog
+from enaml.layout.api import hbox, spacer, vbox, align
+from enaml.widgets.api import MainWindow, Container, MenuBar, Border, Menu, Action, Label, PushButton, DockArea, DockItem, DockPane, ObjectCombo
+from enaml.application import deferred_call
+from vtk_container import VTKContainer
+from colors import COLOR_MAPS
+
+
+def onClose( *args, **kwargs ):
+    ''' on close callback '''
+    pass
+
+
+class SurfaceModelController( Atom ):
+    ''' create surface model '''
+
+    dataTypes     = List()
+    dataValues    = List()
+    colorMaps     = List()
+    selected_data = Value()
+    dataStore     = Dict()
+    selected_colormap = Str()
+
+    def __init__( self, data_values ):
+        ''' default init '''
+        self.dataValues    = data_values
+        self.colorMaps     = COLOR_MAPS
+        self.dataTypes     = [ 'Surface %d'%i for i in xrange( len( self.dataValues ) ) ]
+        self.dataStore     = dict( zip( self.dataTypes, self.dataValues ) )
+        self.selected_data = self.dataValues[0]
+
+
+enamldef Main( MainWindow ):
+    ''' vtk example '''
+    title        = 'Enaml Surface 3D Demo'
+    initial_size = ( 800, 800 )
+
+    closed :: onClose()
+
+    attr data
+    attr controller = SurfaceModelController( data )
+
+    MenuBar:
+        Menu:
+            title = '&File'
+            Action:
+                text = 'Exit'
+                triggered ::
+                    close()
+
+    Container:
+
+        padding = 5
+        constraints = [
+            vbox( hbox( lbl, spacer, data_type, color_map ), view ),
+        ]
+
+        Label: lbl:
+            text = '3D Surface Visualization'
+            background = '#efefef'
+            font = 'bold 12pt "Segoe UI"'
+            hug_width = 'weak'
+
+        ObjectCombo: data_type:
+            constraints =  [ width == 300 ]
+            items       = sorted( controller.dataTypes )
+            editable    = False
+            selected    = sorted( controller.dataTypes )[0]
+            selected    ::
+                controller.selected_data = controller.dataStore[ selected ]
+
+        ObjectCombo: color_map:
+            constraints =  [ width == 300 ]
+            items       = sorted( controller.colorMaps)
+            editable    = False
+            selected    = sorted( controller.colorMaps )[0]
+            selected    ::
+                controller.selected_colormap = selected
+
+
+        VTKContainer: view:
+            plot_data  << controller.selected_data
+            properties << {}
