@@ -1,0 +1,41 @@
+"""
+MPL Canvas Container
+"""
+
+from enaml.layout.api import vbox, hbox, spacer, align
+from enaml.widgets.api import Window, Container, MPLCanvas, CheckBox, ObjectCombo, Label
+
+
+enamldef MPLCanvasContainer( Container ):
+
+    attr mpl_figure
+    attr mpl_event_actions
+
+    alias canvas
+
+    padding = 5
+    constraints = [
+        vbox(
+            hbox(l, obox, check, spacer),
+            canvas,
+        ),
+        align( 'v_center', l, obox, check )
+    ]
+
+    Label: l:
+        text = 'Toolbar location'
+
+    ObjectCombo: obox:
+        items = [ 'top', 'bottom' ]
+        selected = 'bottom'
+        selected ::
+            canvas.toolbar_location = selected
+
+    CheckBox: check:
+        text = 'Toolbar Visible'
+        checked := canvas.toolbar_visible
+
+    MPLCanvas: canvas:
+        figure << mpl_figure
+        toolbar_location << obox.selected
+        event_actions << mpl_event_actions

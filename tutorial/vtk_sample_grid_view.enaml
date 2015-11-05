@@ -1,0 +1,92 @@
+"""
+vtk surface demo
+"""
+
+from enaml.layout.api import hbox, spacer, vbox, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
+from enaml.widgets.api import  MainWindow, Container, GroupBox, DockItem, DockArea, PopupView, Form, Label, Slider
+from vtk_canvas_widget import VTKCanvasWidget
+from sample_grid_model import RenderViewController
+from utils import load_icon
+
+
+enamldef ConfigPopup( PopupView ): popup:
+    foreground = 'white'
+    background = 'rgba(30, 30, 30, 0.85)'
+
+    parent_anchor << (0.5, 0.5)
+    anchor << (0.5, 0.0)
+    arrow_size << 20
+    arrow_edge << 'top'
+    offset << (0,0)
+
+    Form:
+        padding = 20
+        Label:
+            foreground = 'white'
+            text = 'Slice Factor'
+        Slider:
+            minimum = 1
+            maximum = 100
+            value := nonlocals.controller.slice_factor
+
+
+enamldef ViewDockItem( DockItem ): dock_item:
+    ''' dock item '''
+
+    attr model = vtk_model( view )
+    attr view_name
+
+    title     << 'VTK Sample Grid Demo'
+    closable  =  True
+    name      = view_name
+    stretch   = 0
+
+    attr view_controller = RenderViewController(w.view, bgColor=(0.35, 0.35, 0.35))
+
+    closed ::
+        view_controller.on_close()
+
+    GroupBox:
+        padding = 5
+        title = view_name
+
+        Container:
+            padding = 2
+            constraints = [ vbox( w ) ]
+
+            VTKCanvasWidget: w:
+                controller << view_controller
+                config_popup << ConfigPopup
+
+
+
+enamldef ViewDockArea( DockArea ):
+    ''' main dock area '''
+    pass
+
+
+enamldef ViewDockLayout( Container ):
+    ''' main layout '''
+    padding = 0
+
+    constraints = [
+            vbox( dock_area )
+        ]
+
+    ViewDockArea: dock_area:
+        style = 'new-moon'
+        layout = VSplitLayout( 'extract' )
+
+        ViewDockItem:
+            name = 'extract'
+            view_name = 'Grid Extract Demo'
+
+
+enamldef Main( MainWindow ): win:
+    ''' main app '''
+    attr custom_title = ''
+    title = custom_title
+    initial_size = ( 600, 600 )
+
+    ViewDockLayout:
+        pass

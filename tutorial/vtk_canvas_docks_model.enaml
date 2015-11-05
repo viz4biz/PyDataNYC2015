@@ -1,0 +1,123 @@
+'''
+vtk canvas docks example
+'''
+
+from atom.api import Atom, Dict, Str, observe, Value, Int
+from enaml.core.api import Include, Conditional
+from enaml.layout.api import hbox, spacer, vbox, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
+from enaml.widgets.color_dialog import ColorDialog
+from enaml.widgets.api import MainWindow, Container, Label, PushButton, ObjectCombo, GroupBox, CheckBox, MenuBar, Menu, DockArea, DockItem, Action, VTKCanvas
+from scenes import create_renderer
+from docks_model import DocksRenderController
+from utils import load_icon
+
+
+def onLeftDown( position, event ):
+    ''' on left down '''
+    print '>>> down ', position, event
+
+
+def onClose( window ):
+    ''' on close callback '''
+    if window:
+        window.close()
+
+
+def addView( area, floating=True ):
+    ''' add grid to the area '''
+    pass
+
+
+enamldef ViewDockItem( DockItem ): dock_item:
+    ''' dock item '''
+
+    attr controller
+    attr view_name
+    attr bg_color
+
+    title     << 'VTK Visualization'
+    closable  =  True
+    name      = view_name
+    stretch   = 0
+
+    attr controller = DocksRenderController( view=view, bgColor=bg_color, callbacks={ 'OnLeftDown': onLeftDown } )
+
+    closed ::
+        pass
+
+    Container:
+        constraints = [ vbox( view, controlls  ) ]
+
+        VTKCanvas: view:
+            renderer << controller.get_renderers()[0]
+
+        Container: controlls:
+
+            constraints = [ hbox( l, b, o, spacer ), align( 'v_center', l, b, o ) ]
+            Label: l:
+                text = 'Select Background:'
+
+            ObjectCombo: o:
+                items = [ 'TrackBallCamera', 'TrackBallActor', 'JoystickCamera', 'JoystickActor', 'Terrain' ]
+                selected = 'TrackBallCamera'
+                selected ::
+                    controller.set_interactor_style( selected )
+
+            PushButton: b:
+                text = 'Show'
+                icon = load_icon('plus.png')
+                clicked ::
+                    c = ColorDialog.get_color()
+                    if c:
+                        colors = ( c.red/255., c.green/255., c.blue/255. )
+                        controller.set_background( colors )
+
+
+enamldef ViewDockArea( DockArea ):
+    ''' main dock area '''
+    pass
+
+
+enamldef ViewDockLayout( Container ):
+    ''' main layout '''
+    padding = 0
+    alias dock_area
+    alias dock_item_surf
+    alias dock_item_iso
+
+    constraints = [
+            vbox( dock_area )
+        ]
+
+    ViewDockArea: dock_area:
+        style = 'new-moon'
+        layout = HSplitLayout( 'Surface', 'Contours' )
+
+        ViewDockItem: dock_item_surf:
+            view_name = 'Surface'
+            bg_color = ( 0.1, 0.2, 0.3 )
+
+        ViewDockItem: dock_item_iso:
+            view_name = 'Contours'
+            bg_color = ( 0.3, 0.2, 0.1 )
+
+
+enamldef Main( MainWindow ): win:
+    ''' main app '''
+    attr custom_title = ''
+    title = custom_title
+    initial_size = ( 900, 600 )
+
+    alias dock
+
+    ViewDockLayout: dock:
+        pass
+
+    MenuBar:
+        Menu:
+            title = '&Actions'
+
+            Action:
+                text = 'Add New View\tCtrl+N'
+                triggered ::
+                    addView( win.dock.dock_area, False )

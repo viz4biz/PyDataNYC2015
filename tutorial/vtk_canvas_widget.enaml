@@ -1,0 +1,67 @@
+"""
+VTK Canvas widget
+"""
+
+from enaml.layout.api import hbox, spacer, vbox
+from enaml.widgets.api import Container, Label, PushButton, ObjectCombo, PopupView, Label, Slider, Field, Form, VTKCanvas, SpinBox
+from utils import load_icon
+
+
+enamldef ConfigPopup( PopupView ): popup:
+    foreground = 'white'
+    background = 'rgba(30, 30, 30, 0.85)'
+
+    parent_anchor << (0.5, 0.5)
+    anchor << (0.5, 0.0)
+    arrow_size << 20
+    arrow_edge << 'top'
+    offset << (0,0)
+
+    Form:
+        padding = 20
+        Label:
+            foreground = 'white'
+            text = 'Scale Factor'
+        Slider:
+            minimum = 1
+            maximum = 200
+            value := nonlocals.controller.scale_factor
+        Label:
+            foreground = 'white'
+            text = 'Factor'
+        Field:
+            text << str( nonlocals.controller.factor )
+            text ::
+                nonlocals.controller.factor = float( text )
+        Label:
+            foreground = 'white'
+            text = 'Resolution'
+        SpinBox:
+            minimum = 50
+            maximum = 200
+            value := nonlocals.controller.resolution
+
+
+enamldef VTKCanvasWidget(Container):
+
+    attr controller
+    attr config_popup = ConfigPopup
+    alias view
+
+    padding = 2
+    constraints = [ vbox( view, hbox( o, b, spacer ) ) ]
+
+    VTKCanvas: view:
+        renderer << controller.get_renderers()[0]
+
+    ObjectCombo: o:
+        items = [ 'TrackBallCamera', 'TrackBallActor', 'JoystickCamera', 'JoystickActor', 'Terrain' ]
+        selected = 'TrackBallCamera'
+        selected ::
+            controller.set_interactor_style( selected )
+
+    PushButton: b:
+        text = 'Settings'
+        icon = load_icon('plus.png')
+        clicked ::
+            config_popup( self ).show()

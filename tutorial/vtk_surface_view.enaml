@@ -1,0 +1,82 @@
+"""
+vtk surface demo
+"""
+
+from enaml.layout.api import hbox, spacer, vbox, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
+from enaml.widgets.api import  MainWindow, Container, GroupBox, DockItem, DockArea
+from vtk_canvas_widget import VTKCanvasWidget
+from surface_model import RenderViewController
+from utils import load_icon
+
+
+POSITIONS = {
+    'Top Left': (0.0, 0.0),
+    'Top Center': (0.5, 0.0),
+    'Top Right': (1.0, 0.0),
+    'Left': (0.0, 0.5),
+    'Center': (0.5, 0.5),
+    'Right': (1.0, 0.5),
+    'Bottom Left': (0.0, 1.0),
+    'Bottom Center': (0.5, 1.0),
+    'Bottom Right': (1.0, 1.0),
+}
+
+
+enamldef ViewDockItem( DockItem ): dock_item:
+    ''' dock item '''
+
+    attr model = vtk_model( view )
+    attr view_name
+
+    title     << 'VTK Surface Demo'
+    closable  =  True
+    name      = view_name
+    stretch   = 0
+
+    attr view_controller = RenderViewController(w.view)
+
+    closed ::
+        view_controller.on_close()
+
+    GroupBox:
+        padding = 5
+        title = view_name
+
+        Container:
+            padding = 2
+            constraints = [ vbox( w ) ]
+
+            VTKCanvasWidget: w:
+                controller << view_controller
+
+
+enamldef ViewDockArea( DockArea ):
+    ''' main dock area '''
+    pass
+
+
+enamldef ViewDockLayout( Container ):
+    ''' main layout '''
+    padding = 0
+
+    constraints = [
+            vbox( dock_area )
+        ]
+
+    ViewDockArea: dock_area:
+        style = 'new-moon'
+        layout = VSplitLayout( 'extract' )
+
+        ViewDockItem:
+            name = 'extract'
+            view_name = 'Geometry Extract Demo'
+
+
+enamldef Main( MainWindow ): win:
+    ''' main app '''
+    attr custom_title = ''
+    title = custom_title
+    initial_size = ( 600, 600 )
+
+    ViewDockLayout:
+        pass

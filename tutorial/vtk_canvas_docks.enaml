@@ -1,0 +1,105 @@
+'''
+vtk canvas docks example
+'''
+
+from atom.api import Atom, Dict, Str, observe, Value, Int
+from enaml.core.api import Include, Conditional
+from enaml.layout.api import hbox, spacer, vbox, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
+from enaml.widgets.api import MainWindow, Container, Label, PushButton, ObjectCombo, GroupBox, CheckBox, MenuBar, Menu, DockPane, DockArea, DockItem, Action, VTKCanvas
+from scenes import create_renderer
+
+
+def onClose( window ):
+    ''' on cloase callback '''
+    if window:
+        window.close()
+
+
+def addView( area, floating=True ):
+    ''' add grid to the area '''
+    pass
+
+
+enamldef ViewDockItem( DockItem ): dock_item:
+    ''' dock item '''
+
+    attr controller
+    attr view_name
+
+    title     << 'VTK Visualization'
+    closable  =  True
+    name      = view_name
+    stretch   = 0
+
+    attr model = controller.model
+
+    closed ::
+        controller.on_close()
+
+    GroupBox:
+        title = view_name
+        Container:
+            constraints = [ vbox( view ) ]
+
+            VTKCanvas: view:
+                renderer << create_renderer()
+
+
+enamldef ViewDockArea( DockArea ):
+    ''' main dock area '''
+    pass
+
+
+enamldef ViewDockLayout( Container ):
+    ''' main layout '''
+    padding = 0
+    alias dock_area
+    alias dock_item_surf
+    alias dock_item_iso
+
+    constraints = [
+            vbox( dock_area )
+        ]
+
+    ViewDockArea: dock_area:
+        style = 'new-moon'
+        layout = HSplitLayout( VSplitLayout( 'Surface', 'Contours' ) )
+
+        ViewDockItem: dock_item_surf:
+            view_name = 'Surface'
+
+        ViewDockItem: dock_item_iso:
+            view_name = 'Contours'
+
+
+enamldef Main( MainWindow ): win:
+    ''' main app '''
+    attr custom_title = ''
+    title = custom_title
+    initial_size = ( 900, 600 )
+
+    alias dock
+
+    DockPane:
+        title = 'VTK Dock Panes Demo'
+        closable = True
+        movable = True
+        floatable = True
+        ViewDockLayout: dock:
+            pass
+
+    MenuBar:
+        Menu:
+            title = '&Actions'
+
+            Action:
+                text = 'Add New View\tCtrl+N'
+                triggered ::
+                    addView( win.dock.dock_area, False )
+
+            Action:
+                text = 'Close'
+                triggered ::
+                    onClose( win )
+
+

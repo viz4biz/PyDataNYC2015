@@ -1,0 +1,232 @@
+'''
+vtk multi window
+'''
+
+from atom.api import Atom, Value, List
+from enaml.core.api import Include, Conditional
+from enaml.layout.api import hbox, spacer, vbox, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
+from enaml.widgets.api import MainWindow, Container, Label, PushButton, ObjectCombo, GroupBox, CheckBox, MenuBar, Menu, DockArea, DockItem, Action, VTKCanvas
+from scenes import create_renderer
+from multi_set_model import RenderViewController, get_all_actors
+from utils import load_icon
+from vtk_canvas_wrapper import VTKCanvasWrapper
+from enaml.application import deferred_call
+from slider import SliderControl
+
+
+def onLeftDown( position, event ):
+    ''' on left down '''
+    print '>>> down ', position, event
+
+
+def onClose( window ):
+    ''' on close callback '''
+    if window:
+        window.close()
+
+
+def addView( area, floating=True ):
+    ''' add grid to the area '''
+    pass
+
+
+class ModelController( Atom ):
+    ''' custom vtk controller  '''
+
+    ShapeMapper = Value()
+    ContMapper = Value()
+    ContZMapper = Value()
+
+    ShapeContour = Value()
+    ContContour = Value()
+    ContZContour = Value()
+    XSlicer = Value()
+    ZSlicer = Value()
+
+    ValueRange = List()
+
+    def onMapSlicer( self, val, pos=0, views=None):
+        ''' value control '''
+        v = val/100.0
+        r = list( self.ShapeMapper.GetScalarRange() )
+
+        if pos == 0:
+            if v <= r[1]:
+                r[ pos ] = v
+        if pos == 1:
+            if v >= r[0]:
+                r[ pos ] = v
+
+        self.ShapeMapper.SetScalarRange( r )
+        self.ContMapper.SetScalarRange( r )
+        self.ContZMapper.SetScalarRange( r )
+        self.ValueRange = r
+        if views:
+            for view in views:
+                deferred_call( view.render )
+
+    def onContour( self, val, views=None ):
+        ''' contour control '''
+        self.ShapeContour.GenerateValues( val, *self.ValueRange )
+        self.ContContour.GenerateValues( val, *self.ValueRange )
+        self.ContZContour.GenerateValues( val, *self.ValueRange )
+        if views:
+            for view in views:
+                deferred_call( view.render )
+
+    def onSlicing( self, val, views ):
+        ''' slice data '''
+        self.XSlicer.SetVOI(0, 29, 0, 29, val, val)
+        self.ZSlicer.SetVOI(0, 29, val, val, 0, 29)
+        if views:
+            for view in views:
+                deferred_call( view.render )
+
+
+enamldef ControlDockItem(DockItem): controls:
+
+    attr view_name
+    attr bg_color
+
+    title     << 'VTK Visualization'
+    closable  =  True
+    name      = view_name
+    stretch   = 0
+
+    attr views
+    attr actors
+    attr model_controller = ModelController( ShapeMapper=actors[0].GetMapper(),
+                                             ContMapper=actors[1].GetMapper(),
+                                             ContZMapper=actors[2].GetMapper(),
+                                             ShapeContour=actors[4],
+                                             ContContour=actors[5],
+                                             ContZContour=actors[6],
+                                             XSlicer=actors[7],
+                                             ZSlicer=actors[8],
+                                             ValueRange=[0, 1.2] )
+
+    Container: ctrl:
+        padding = ( 5, 5, 5, 5 )
+        constraints = [
+            hbox( sl1, sl2, sl3, sl4 ),
+            align( 'width', sl1, sl2, sl3, sl4 ),
+        ]
+
+        SliderControl: sl1:
+            info_label = 'Min Value'
+            min_value = 0
+            max_value = 120
+            slider_value = 0
+            slider_value ::
+                model_controller.onMapSlicer( slider_value, 0, views )
+
+        SliderControl: sl2:
+            info_label = 'Max Value'
+            min_value = 0
+            max_value = 200
+            slider_value = 120
+            slider_value ::
+                model_controller.onMapSlicer( slider_value, 1, views )
+
+        SliderControl: sl3:
+            info_label = 'Contours'
+            min_value = 2
+            max_value = 20
+            slider_value = 10
+            slider_value ::
+                model_controller.onContour( slider_value, views )
+
+        SliderControl: sl4:
+            info_label = 'Slicing'
+            min_value = 1
+            max_value = 30
+            slider_value = 15
+            slider_value ::
+                model_controller.onSlicing( slider_value, views )
+
+
+enamldef ViewDockItem( DockItem ): dock_item:
+    ''' dock item '''
+
+    attr view_name
+    attr bg_color
+
+    title     << 'VTK Visualization'
+    closable  =  True
+    name      = view_name
+    stretch   = 0
+
+    alias view : w.view
+    attr actors
+    attr item_controller = RenderViewController( view=w.view,
+                                                 bgColor=bg_color,
+                                                 callbacks={ 'OnLeftDown': onLeftDown },
+                                                 actors=actors )
+
+    closed ::
+        pass
+
+    VTKCanvasWrapper: w:
+        controller << item_controller
+
+
+enamldef ViewDockArea( DockArea ):
+    ''' main dock area '''
+    pass
+
+
+enamldef ViewDockLayout( Container ):
+    ''' main layout '''
+
+    attr all_actors = get_all_actors()
+
+    padding = 0
+
+    constraints = [
+            vbox( dock_area )
+        ]
+
+    ViewDockArea: dock_area:
+        style = 'new-moon'
+        layout = VSplitLayout( HSplitLayout( 'Surface', 'ContoursX', 'ContoursY' ), 'Controls' )
+
+        ViewDockItem: dock_item_surf:
+            actors << [ all_actors[0], all_actors[3] ]
+            view_name = 'Surface'
+            bg_color = ( 0.1, 0.2, 0.3 )
+
+        ViewDockItem: dock_item_iso_x:
+            actors << [ all_actors[1], all_actors[3] ]
+            view_name = 'ContoursX'
+            bg_color = ( 0.1, 0.2, 0.1 )
+
+        ViewDockItem: dock_item_iso_y:
+            actors << [ all_actors[2], all_actors[3] ]
+            view_name = 'ContoursY'
+            bg_color = ( 0.2, 0.2, 0.1 )
+
+        ControlDockItem: dock_ctrl:
+            view_name = 'Controls'
+            actors = all_actors
+            views = [ dock_item_surf.view, dock_item_iso_x.view, dock_item_iso_y.view ]
+
+
+enamldef Main( MainWindow ): win:
+    ''' main app '''
+    attr custom_title = ''
+    title = custom_title
+    initial_size = ( 900, 600 )
+
+    alias dock
+
+    ViewDockLayout: dock:
+        pass
+
+    MenuBar:
+        Menu:
+            title = '&Actions'
+
+            Action:
+                text = 'Add New View\tCtrl+N'
+                triggered ::
+                    addView( win.dock.dock_area, False )

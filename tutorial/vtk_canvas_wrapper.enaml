@@ -1,0 +1,41 @@
+"""
+VTK Canvas wrapper
+"""
+
+from enaml.layout.api import hbox, spacer, vbox, align
+from enaml.widgets.api import Container, Label, PushButton, ObjectCombo, VTKCanvas
+from utils import load_icon
+from enaml.widgets.color_dialog import ColorDialog
+
+
+enamldef VTKCanvasWrapper(Container):
+
+    alias view
+    attr controller
+
+    padding = 5
+    constraints = [ vbox( view, controlls ) ]
+
+    VTKCanvas: view:
+        renderer << controller.get_renderers()[0]
+
+    Container: controlls:
+
+        constraints = [ hbox( l, b, o, spacer ), align( 'v_center', l, b, o ) ]
+        Label: l:
+            text = 'Select Background:'
+
+        ObjectCombo: o:
+            items = [ 'TrackBallCamera', 'TrackBallActor', 'JoystickCamera', 'JoystickActor', 'Terrain' ]
+            selected = 'TrackBallCamera'
+            selected ::
+                controller.set_interactor_style( selected )
+
+        PushButton: b:
+            text = 'Show'
+            icon = load_icon('plus.png')
+            clicked ::
+                c = ColorDialog.get_color()
+                if c:
+                    colors = ( c.red/255., c.green/255., c.blue/255. )
+                    controller.set_background( colors )

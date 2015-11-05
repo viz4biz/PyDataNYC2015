@@ -1,0 +1,124 @@
+"""
+Matplotlib demo
+"""
+
+from atom.api import Atom, Str, List, Value, Int
+from enaml.layout.api import vbox, hbox, spacer, align
+from enaml.widgets.api import Window, Container, CheckBox, ComboBox, ObjectCombo, Label, PopupView, Form, Slider, Field, PushButton
+from mpl_canvas_container import MPLCanvasContainer
+from utils import load_icon
+from enaml.application import deferred_call
+
+from matplotlib.figure import Figure
+from matplotlib import style, cm
+import numpy as np
+
+
+class ModelController( Atom ):
+
+    canvas = Value()
+    figure = Value()
+    plot = Value()
+    title = Str('Demo')
+    scale_factor = List(default=[1.0, 0.5, 2.0])
+    scale_factor_0 = Int(2)
+    scale_factor_1 = Int(1)
+    scale_factor_2 = Int(4)
+
+    def _observe_title( self, change ):
+        if change:
+            value = change.get( 'value' )
+            if value:
+                self.figure.suptitle( value )
+                if self.canvas:
+                    deferred_call( self.canvas.draw )
+
+    def _observe_scale_factor_0( self, change ):
+        if change:
+            value = change.get( 'value' )
+            if value:
+                valuef = float(value)/2.
+                if self.plot:
+                    plot_lines( self.plot, ( valuef, self.scale_factor[1], self.scale_factor[2] ) )
+                    if self.canvas:
+                        deferred_call( self.canvas.draw )
+
+
+enamldef ConfigPopup( PopupView ): popup:
+    foreground = 'white'
+    background = 'rgba(30, 30, 30, 0.85)'
+
+    parent_anchor << (0.5, 0.5)
+    anchor << (0.5, 0.0)
+    arrow_size << 20
+    arrow_edge << 'top'
+    offset << (0,0)
+
+    Form:
+        padding = 20
+        Label:
+            foreground = 'white'
+            text = 'Title'
+        Field:
+            text := nonlocals.controller.title
+        Label:
+            foreground = 'white'
+            text = 'Scale Factor'
+        Slider:
+            minimum = 1
+            maximum = 10
+            value := nonlocals.controller.scale_factor_0
+
+
+def on_key_press( *args, **kwargs ):
+    """ on key press event """
+    print '>>> press ', args, kwargs
+
+
+def plot_lines( plt, params ):
+    x = np.linspace(0, 10)
+    shape = 50
+
+    with style.context( 'fivethirtyeight' ):
+        for param in params:
+            plt.plot(x, np.sin(x) + param * x + np.random.randn(shape))
+
+
+def get_figure( shape=50, params=( 1, 0.5, 2 ), title='Demo' ):
+    """ create Figure """
+
+    with style.context( 'fivethirtyeight' ):
+        fig = Figure()
+        plt = fig.add_subplot(1, 1, 1)
+
+        plot_lines( plt, params )
+        fig.suptitle( title )
+        return fig, plt
+
+
+enamldef Main(Window):
+
+    attr custom_title = ''
+    title = custom_title
+    attr mplot_style = ''
+
+    attr scale_factor = [ 1, 0.5, 2 ]
+    attr figure_params = get_figure( params=scale_factor )
+    attr controller = ModelController( canvas=mpl.canvas, figure=figure_params[0], plot=figure_params[1], scale_factor=scale_factor )
+
+    Container:
+        padding = 5
+        constraints = [ vbox( mpl, b ) ]
+
+        MPLCanvasContainer: mpl:
+            mpl_figure << figure_params[0]
+            mpl_event_actions << [ ( 'key_press_event', on_key_press ), ]
+
+        PushButton: b:
+            text = 'Config'
+            icon = load_icon('plus.png')
+            clicked ::
+                ConfigPopup( self ).show()
+
+    initialized ::
+        style.use( mplot_style )

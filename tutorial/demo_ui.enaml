@@ -1,0 +1,16 @@
+'''
+Demo
+'''
+from enaml.widgets.api import Window, Container, Label
+
+
+enamldef Main(Window):
+
+    attr message = "Hello, world!"
+
+    Container:
+        padding = 5
+
+        Label:
+            text = message
+

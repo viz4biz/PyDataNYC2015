@@ -1,0 +1,128 @@
+'''
+VTK extract view enaml
+'''
+
+from enaml.layout.api import hbox, spacer, vbox, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
+from enaml.widgets.api import SpinBox, Field, Slider, MainWindow, Container, Label, PushButton, ObjectCombo, GroupBox, CheckBox, MenuBar, Menu, DockArea, DockItem, Action, VTKCanvas, PopupView, Form
+from extract_model import RenderViewController
+from utils import load_icon
+
+
+POSITIONS = {
+    'Top Left': (0.0, 0.0),
+    'Top Center': (0.5, 0.0),
+    'Top Right': (1.0, 0.0),
+    'Left': (0.0, 0.5),
+    'Center': (0.5, 0.5),
+    'Right': (1.0, 0.5),
+    'Bottom Left': (0.0, 1.0),
+    'Bottom Center': (0.5, 1.0),
+    'Bottom Right': (1.0, 1.0),
+}
+
+
+enamldef ConfigPopup( PopupView ): popup:
+    foreground = 'white'
+    background = 'rgba(30, 30, 30, 0.85)'
+
+    parent_anchor << (0.5, 0.5)
+    anchor << (0.5, 0.0)
+    arrow_size << 20
+    arrow_edge << 'top'
+    offset << (0,0)
+
+    Form:
+        padding = 20
+        Label:
+            foreground = 'white'
+            text = 'Shrink Factor'
+        Slider:
+            minimum = 1
+            maximum = 100
+            value := nonlocals.controller.shrink_factor
+        Label:
+            foreground = 'white'
+            text = 'Title'
+        Field:
+            text = ''
+            text ::
+                print text
+        Label:
+            foreground = 'white'
+            text = 'Radius'
+        SpinBox:
+            minimum = 1
+            maximum = 100
+            value := nonlocals.controller.radius
+
+
+enamldef ViewDockItem( DockItem ): dock_item:
+    ''' dock item '''
+
+    attr model = vtk_model( view )
+    attr view_name
+
+    title     << 'VTK Visualization Demo'
+    closable  =  True
+    name      = view_name
+    stretch   = 0
+
+    attr controller = RenderViewController(view)
+
+    closed ::
+        controller.on_close()
+
+    GroupBox:
+        padding = 5
+        title = view_name
+
+        Container:
+            padding = 2
+            constraints = [ vbox( view, hbox( o, b, spacer ) ) ]
+
+            VTKCanvas: view:
+                renderer << controller.get_renderers()[0]
+
+            ObjectCombo: o:
+                items = [ 'TrackBallCamera', 'TrackBallActor', 'JoystickCamera', 'JoystickActor', 'Terrain' ]
+                selected = 'TrackBallCamera'
+                selected ::
+                    controller.set_interactor_style( selected )
+
+            PushButton: b:
+                text = 'Settings'
+                icon = load_icon('plus.png')
+                clicked ::
+                    ConfigPopup( self ).show()
+
+
+enamldef ViewDockArea( DockArea ):
+    ''' main dock area '''
+    pass
+
+
+enamldef ViewDockLayout( Container ):
+    ''' main layout '''
+    padding = 0
+
+    constraints = [
+            vbox( dock_area )
+        ]
+
+    ViewDockArea: dock_area:
+        style = 'new-moon'
+        layout = VSplitLayout( 'extract' )
+
+        ViewDockItem:
+            name = 'extract'
+            view_name = 'Geometry Extract Demo'
+
+
+enamldef Main( MainWindow ): win:
+    ''' main app '''
+    attr custom_title = ''
+    title = custom_title
+    initial_size = ( 600, 600 )
+
+    ViewDockLayout:
+        pass

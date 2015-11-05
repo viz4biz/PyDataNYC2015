@@ -1,0 +1,71 @@
+'''
+Matplotlib simple demo
+'''
+
+from enaml.layout.api import vbox, hbox, spacer, align
+from enaml.widgets.api import Window, Container, MPLCanvas, CheckBox, ComboBox, ObjectCombo
+
+from matplotlib.figure import Figure
+from matplotlib import style
+
+style.use( 'dark_background' )
+
+fig1 = Figure()
+ax1 = fig1.add_subplot(111)
+ax1.plot([1, 2, 3])
+
+fig2 = Figure()
+ax2 = fig2.add_subplot(111)
+ax2.plot([5, 2, 8, 1])
+
+
+figures = {
+    'one': fig1,
+    'two': fig2,
+}
+
+
+def on_key_press( *args, **kwargs ):
+    """ on key press event """
+    print '>>> press ', args, kwargs
+
+
+enamldef Main(Window):
+
+    attr custom_title = ''
+    title = custom_title
+
+    Container:
+        padding = 5
+        constraints = [
+            vbox(
+                hbox(cbox, obox, check, sbox, spacer),
+                canvas,
+            ),
+            align( 'v_center', cbox, obox, check, sbox )
+        ]
+
+        ObjectCombo: obox:
+            items = [ 'top', 'bottom' ]
+            selected = 'bottom'
+            selected ::
+                canvas.toolbar_location = selected
+
+        ObjectCombo: sbox:
+            items = style.available
+            selected ::
+                style.use( str( selected ) )
+
+        ComboBox: cbox:
+            items = ['one', 'two']
+            index = 0
+
+        CheckBox: check:
+            text = 'Toolbar Visible'
+            checked := canvas.toolbar_visible
+
+        MPLCanvas: canvas:
+            figure << figures[cbox.selected_item]
+            toolbar_location << obox.selected
+            event_actions << [ ( 'key_press_event', on_key_press ), ]
+

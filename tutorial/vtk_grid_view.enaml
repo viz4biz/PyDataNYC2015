@@ -1,0 +1,92 @@
+"""
+VTK Grid View
+"""
+
+from enaml.widgets.api import Window, Container, VTKCanvas
+import vtk
+from math import cos, sin
+
+
+def create_renderer():
+    ''' example renderer '''
+
+    rMin=0.5
+    rMax=1.0
+    dims = [13,11,11]
+    grid = vtk.vtkStructuredGrid()
+    grid.SetDimensions(dims)
+    x = []
+    v = []
+
+    # We also create the points and vectors. The points
+    #form a hemi-cylinder of data.
+
+    vectors = vtk.vtkFloatArray()
+    vectors.SetNumberOfComponents(3)
+    vectors.SetNumberOfTuples(dims[0]*dims[1]*dims[2])
+    points = vtk.vtkPoints()
+
+    deltaZ = 2.0 / (dims[2]-1)
+    deltaRad = (rMax-rMin) / (dims[1]-1)
+    v2=0.0
+
+    for k in xrange(dims[2]):
+        x2 = -1.0 + k*deltaZ
+        kOffset = k * dims[0] * dims[1];
+        for j in xrange(dims[1]):
+            radius = rMin + j*deltaRad;
+            jOffset = j * dims[0];
+            for i in xrange(dims[0]):
+                theta = i * vtk.vtkMath.RadiansFromDegrees(15.0)
+                x = [ radius * cos(theta), radius * sin(theta), x2 ]
+                v = [ -x[1], x[0], v2 ]
+                offset = i + jOffset + kOffset
+                points.InsertPoint(offset,x)
+                vectors.InsertTuple(offset,v)
+
+    grid.SetPoints(points)
+    grid.GetPointData().SetVectors(vectors)
+
+    hedgehog = vtk.vtkHedgeHog()
+    hedgehog.SetInputData(grid)
+    hedgehog.SetScaleFactor(0.1)
+
+    filter = vtk.vtkStructuredGridGeometryFilter()
+    filter.SetInputData(grid)
+    filter.SetExtent(grid.GetExtent())
+
+    print filter
+
+    grid_mapper = vtk.vtkPolyDataMapper()
+    grid_mapper.SetInputConnection(filter.GetOutputPort())
+
+    grid_actor = vtk.vtkActor()
+    grid_actor.SetMapper(grid_mapper)
+    grid_actor.GetProperty().SetColor( 1, 0, 0 )
+
+    outline = vtk.vtkOutlineFilter()
+    outline.SetInputConnection(hedgehog.GetOutputPort())
+
+    outline_mapper = vtk.vtkPolyDataMapper()
+    outline_mapper.SetInputConnection(outline.GetOutputPort())
+
+    outline_actor = vtk.vtkActor()
+    outline_actor.SetMapper(outline_mapper)
+    outline_actor.GetProperty().SetColor(0, 0, 0)
+
+    renderer = vtk.vtkRenderer()
+    renderer.AddActor(grid_actor)
+    renderer.AddActor(outline_actor)
+    renderer.SetBackground(.75, .75, .75)
+
+    return renderer
+
+
+enamldef Main(Window):
+    attr custom_title = 'VTK Canvas Grid Demo'
+    title = custom_title
+
+    Container:
+        padding = 5
+        VTKCanvas:
+            renderer = create_renderer()

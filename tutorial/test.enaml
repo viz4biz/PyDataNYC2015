@@ -1,0 +1,69 @@
+"""
+Test
+"""
+
+from enaml.widgets.api import Window, Container, Label, Field, CheckBox, PushButton
+from enaml.layout.api import vbox, hbox, spacer, align
+from atom.api import Atom, Str, Int, Bool
+
+
+class Model(Atom):
+	
+	status = Str('Connected')
+	message = Str('')
+	enabled = Bool(default=False)
+	counter = Int(default=0)
+	bg_color = Str('white')
+
+	def _observe_message(self, change):
+		if change:
+			value = change.get('value')
+			if value == 'enable':
+				self.enabled = True
+			if value == 'disable':
+				self.enabled = False
+				
+	def _observe_counter(self, change):
+		if change:
+			value = change.get('value')
+			if value > 10:
+				self.bg_color = 'yellow'
+			if value > 20:
+				self.bg_color = 'red'
+
+
+enamldef Main(Window):
+	
+	title = 'Test'
+	minimum_size = ( 400, 400 )
+
+	attr model = Model()
+
+	Container:
+		padding = 5
+		constraints = [ vbox( l, f, c, b ), align( 'left', l, f, c, b ) ]
+
+		Label: l:
+			background << model.bg_color
+			text << ( model.status + ' ' + model.message + ' ' + 
+					  str( model.counter ) + ' ' + 
+					  str( model.enabled ) )
+
+		Field: f:
+			text >> model.message
+			enabled << model.enabled
+
+		CheckBox: c:
+			constraints = [ width == 250 ]
+			text = 'Enabled'
+			checked := model.enabled
+
+		PushButton: b:
+			text = 'Increase Count'
+			clicked ::
+				model.counter += 1
+
+
+
+
+

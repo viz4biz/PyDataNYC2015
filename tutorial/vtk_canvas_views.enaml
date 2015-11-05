@@ -1,0 +1,164 @@
+"""
+vtk interactive example
+"""
+
+from atom.api import Value, List
+from enaml.widgets.color_dialog import ColorDialog
+from enaml.layout.api import hbox, spacer, vbox, align
+from enaml.widgets.api import MainWindow, Container, MenuBar, Border, Menu, Action, Label, PushButton, VTKCanvas
+from scenes import visQuadFunc
+from renderers import VTKRenderController
+from enaml.application import deferred_call
+from slider import SliderControl
+
+
+def onClose( *args, **kwargs ):
+    ''' on close callback '''
+    pass
+
+
+class RenderController( VTKRenderController ):
+    ''' custom vtk controller  '''
+
+    _ShapeMapper = Value()
+    _ContMapper = Value()
+    _ShapeContour = Value()
+    _ContContour = Value()
+    _range = List()
+
+    def setBackgrounds( self, backgrounds, view=None ):
+        ''' set backgrounds '''
+        self.customBackgrounds = { 0: backgrounds, 1: backgrounds }
+        if view:
+            deferred_call( view.render )
+
+    def setShapeMapper( self, mapper  ):
+        ''' set shape mapper '''
+        self._ShapeMapper = mapper
+
+    def setContMapper( self, mapper ):
+        ''' set contour mapper '''
+        self._ContMapper = mapper
+
+    def setContours( self, c1, c2 ):
+        ''' set shape contours '''
+        self._ShapeContour = c1
+        self._ContContour  = c2
+        self._range = [ 0.0, 1.2 ]
+
+    def onMapSlicer( self, val, pos=0, view=None ):
+        ''' value control '''
+        v = val/100.0
+        r = list( self._ShapeMapper.GetScalarRange() )
+
+        if pos == 0:
+            if v <= r[1]:
+                r[ pos ] = v
+        if pos == 1:
+            if v >= r[0]:
+                r[ pos ] = v
+
+        self._ShapeMapper.SetScalarRange( r )
+        self._ContMapper.SetScalarRange( r )
+        self._range = r
+        if view:
+            deferred_call( view.render )
+
+    def onContour( self, val, view=None ):
+        ''' contour control '''
+        self._ShapeContour.GenerateValues( val, *self._range )
+        self._ContContour.GenerateValues( val, *self._range )
+        if view:
+            deferred_call( view.render )
+
+
+def vtk_renderer( view ):
+    ''' create vtk renderer '''
+    controller  = RenderController( numOfRenderers = 2,
+                                    view = view,
+                                    customBackgrounds = { 0: ( 0.1, 0.2, 0.3 ), 1: ( 0.1, 0.2, 0.1 ) },
+                                    customPorts = { 0: ( 0.0, 0.0, 0.5, 1.0 ), 1: ( 0.5, 0.0, 1.0, 1.0 ) }, )
+
+    actors = visQuadFunc()
+    actorsForView = { 0: ( actors[0], actors[2] ), 1: ( actors[1], actors[2] ) }
+
+    controller.addActors( actorsForView )
+    controller.setShapeMapper( actors[0].GetMapper() )
+    controller.setContMapper( actors[1].GetMapper() )
+    controller.setContours( actors[3], actors[4] )
+
+    return controller
+
+
+enamldef Main( MainWindow ):
+    ''' vtk example '''
+    attr custom_title
+    title = custom_title
+    initial_size = ( 1000, 800 )
+
+    closed :: onClose()
+
+    attr controller = vtk_renderer( view )
+
+    MenuBar:
+        Menu:
+            title = '&File'
+            Action:
+                text = 'Exit'
+                triggered ::
+                    close()
+
+    Container:
+        padding = 5
+        constraints = [
+            col_btn.width <= 250,
+            vbox( hbox( lbl, spacer, col_btn ), view, ctrl ),
+        ]
+
+        Label: lbl:
+            text = 'VTK Visualization Demo'
+            background = '#efefef'
+            font = 'bold 12pt "Segoe UI"'
+            hug_width = 'weak'
+
+        PushButton: col_btn:
+            text = 'Change Background Colors'
+            clicked ::
+                c = ColorDialog.get_color()
+                if c:
+                    colors = ( c.red/255., c.green/255., c.blue/255. )
+                    controller.setBackgrounds( colors, view )
+
+        VTKCanvas: view:
+            renderers << controller.get_renderers()
+
+        Container: ctrl:
+            padding = ( 5, 5, 5, 5 )
+            constraints = [
+                hbox( sl1, sl2, sl3 ),
+                align( 'width', sl1, sl2, sl3 ),
+            ]
+
+            SliderControl: sl1:
+                info_label = 'Min Value'
+                min_value = 0
+                max_value = 120
+                slider_value = 0
+                slider_value ::
+                    controller.onMapSlicer( slider_value, 0, view )
+
+            SliderControl: sl2:
+                info_label = 'Max Value'
+                min_value = 0
+                max_value = 200
+                slider_value = 120
+                slider_value ::
+                    controller.onMapSlicer( slider_value, 1, view )
+
+            SliderControl: sl3:
+                info_label = 'Contours'
+                min_value = 2
+                max_value = 20
+                slider_value = 8
+                slider_value ::
+                    controller.onContour( slider_value, view )

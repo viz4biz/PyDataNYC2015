@@ -1,0 +1,75 @@
+"""
+Matplotlib demo
+"""
+
+from enaml.layout.api import vbox, hbox, spacer, align
+from enaml.widgets.api import Window, Container, MPLCanvas, CheckBox, ComboBox, ObjectCombo, Label
+
+from matplotlib.figure import Figure
+from matplotlib import style, cm
+from datasources import grid_data
+
+
+def on_key_press( *args, **kwargs ):
+    """ on key press event """
+    print '>>> press ', args, kwargs
+
+
+def get_figure():
+    """ create Figure """
+    xi, yi, zi = grid_data()
+
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+
+    cs = axis.contour(xi, yi, zi, 15, linewidths=0.5, colors='k', xlim=(-2,2), ylim=(-2,2))
+    csf = axis.contourf(xi, yi, zi, 15, cmap=cm.rainbow, vmax=abs(zi).max(), vmin=-abs(zi).max(), xlim=(-2,2), ylim=(-2,2))
+
+    fig.colorbar(csf)
+    fig.suptitle('Grid Data Test (%d points)' % 100)
+
+    return fig
+
+
+enamldef Main(Window):
+
+    attr custom_title = ''
+    title = custom_title
+    attr mplot_style = 'dark_background'
+
+    Container:
+        padding = 5
+        constraints = [
+            vbox(
+                hbox(l, obox, check, sbox, spacer),
+                canvas,
+            ),
+            align( 'v_center', l, obox, check, sbox )
+        ]
+
+        Label: l:
+            text = 'Toolbar location'
+
+        ObjectCombo: obox:
+            items = [ 'top', 'bottom' ]
+            selected = 'bottom'
+            selected ::
+                canvas.toolbar_location = selected
+
+        ObjectCombo: sbox:
+            items = style.available
+            selected = mplot_style
+            selected ::
+                style.use( str( selected ) )
+
+        CheckBox: check:
+            text = 'Toolbar Visible'
+            checked := canvas.toolbar_visible
+
+        MPLCanvas: canvas:
+            figure << get_figure()
+            toolbar_location << obox.selected
+            event_actions << [ ( 'key_press_event', on_key_press ), ]
+
+    initialized ::
+        style.use( mplot_style )
