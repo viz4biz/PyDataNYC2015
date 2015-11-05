@@ -10,6 +10,10 @@ You need VTK 6.1 or newer to run VTK examples (curent version of VTK in Anaconda
 for MacOS is 6.3).
 
 Tutorial: this folder contains all the tutorial files
-Enaml: this folder contains updates to core Enaml files - to be submitted to Enaml team
+
+Enaml: this folder contains updates to core Enaml files - to be submitted
+to Enaml team
+
 Vtklib: this contains VTK surface related source code
+
 Data: this folder contains some data files used in this tutorial
