@@ -88,7 +88,7 @@ class FigureModel( Atom ):
             if value:
                 if self.controller is not None:
                     self.apply_labels()
-                    self.controller.canvas.draw()
+                    deferred_call( self.controller.canvas.draw )
 
     def _observe_periods( self, change ):
         if change:
@@ -96,7 +96,7 @@ class FigureModel( Atom ):
             if value:
                 if self.controller is not None:
                     self.controller.plot_lines()
-                    self.controller.canvas.draw()
+                    deferred_call( self.controller.canvas.draw )
 
 
 class ModelController( Atom ):
@@ -230,7 +230,7 @@ enamldef PlotDockLayout( Container ):
 enamldef Main( Window ): win:
 
     icon = load_icon('applications-blue.png')
-    initial_size = (800, 600)
+    initial_size = (600, 400)
 
     attr custom_title = ''
     title = custom_title

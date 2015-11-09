@@ -46,7 +46,7 @@ class FigureModel( Atom ):
         """ plot random lines """
         ts = pd.Series( np.random.randn( self.periods ), index=pd.date_range('1/1/2010', periods=self.periods ) )
         ts = ts.cumsum()
-        self.axes.plot( ts.index, ts.values, linestyle='-' )
+        self.axes.plot( ts.index, ts.values, linestyle='--', marker='x', linewidth=1 )
         self.axes.legend( [ 'Price' ] )
 
     def _observe_title( self, change ):
@@ -63,7 +63,7 @@ class FigureModel( Atom ):
             if value:
                 if self.controller is not None:
                     self.controller.plot_lines()
-                    self.controller.canvas.draw()
+                    deferred_call( self.controller.canvas.draw )
 
 
 class ModelController( Atom ):
