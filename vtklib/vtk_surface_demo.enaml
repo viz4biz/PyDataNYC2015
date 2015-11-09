@@ -4,11 +4,12 @@ VTk surface demo
 
 from atom.api import Atom, List, Typed, Value, Dict, Str
 from enaml.widgets.color_dialog import ColorDialog
-from enaml.layout.api import hbox, spacer, vbox, align
-from enaml.widgets.api import MainWindow, Container, MenuBar, Border, Menu, Action, Label, PushButton, DockArea, DockItem, DockPane, ObjectCombo
+from enaml.layout.api import hbox, spacer, vbox, align, HSplitLayout, VSplitLayout
+from enaml.widgets.api import MainWindow, Container, MenuBar, Border, Menu, Action, Label, PushButton, DockArea, DockItem, DockPane, ObjectCombo, GroupBox
 from enaml.application import deferred_call
 from vtk_container import VTKContainer
 from colors import COLOR_MAPS
+from slider import SliderControl
 
 
 def onClose( *args, **kwargs ):
@@ -35,15 +36,139 @@ class SurfaceModelController( Atom ):
         self.selected_data = self.dataValues[0]
 
 
+enamldef ControlsDockItem( DockItem ): dock_ctrl:
+    ''' dock item control '''
+
+    attr view_name
+    name = view_name
+    title = 'Controls'
+    closable  =  False
+
+    Container:
+        padding = 5
+        hug_width = 'strong'
+        hug_height = 'strong'
+
+        constraints = [
+            hbox( sl1, sl2, sl3 ),
+            align( 'width', sl1, sl2, sl3 ),
+        ]
+
+        SliderControl: sl1:
+            info_label = 'X Slice'
+            min_value = 0
+            max_value = 10
+            slider_value = 1
+            slider_value ::
+                pass
+
+        SliderControl: sl2:
+            info_label = 'Y Slice'
+            min_value = 0
+            max_value = 10
+            slider_value = 1
+            slider_value ::
+                pass
+
+        SliderControl: sl3:
+            info_label = 'Z Slice'
+            min_value = 0
+            max_value = 10
+            slider_value = 1
+            slider_value ::
+                pass
+
+
+enamldef ViewDockItem( DockItem ): dock_item:
+    ''' dock item view '''
+
+    attr view_name
+
+    title     << 'VTK Visualization'
+    closable  =  True
+    name      = view_name
+
+    closed ::
+        nonlocals.controller.on_close()
+
+    GroupBox:
+        padding = 2
+
+        Container:
+            padding = 2
+            constraints = [
+                vbox( hbox( lbl, spacer, data_type, l, color_map ), view ), align( 'v_center', lbl, data_type, l, color_map )
+            ]
+
+            Label: lbl:
+                text = '3D Surface Visualization'
+                font = 'bold 12pt "Segoe UI"'
+                hug_width = 'weak'
+
+            ObjectCombo: data_type:
+                constraints =  [ width == 300 ]
+                items       = sorted( nonlocals.controller.dataTypes )
+                editable    = False
+                selected    = sorted( nonlocals.controller.dataTypes )[0]
+                selected    ::
+                    nonlocals.controller.selected_data = controller.dataStore[ selected ]
+
+            Label: l:
+                text = 'Color Map'
+
+            ObjectCombo: color_map:
+                constraints =  [ width == 300 ]
+                items       = sorted( nonlocals.controller.colorMaps)
+                editable    = False
+                selected    = sorted( nonlocals.controller.colorMaps )[0]
+                selected    ::
+                    nonlocals.controller.selected_colormap = selected
+
+            VTKContainer: view:
+                plot_data  << nonlocals.controller.selected_data
+                properties << {}
+
+
+enamldef ViewDockArea( DockArea ):
+    ''' main dock area '''
+    pass
+
+
+enamldef ViewDockLayout( Container ):
+    ''' main layout '''
+    padding = 0
+    alias dock_area
+    alias dock_item_surf
+
+    constraints = [
+            vbox( dock_area )
+        ]
+
+    ViewDockArea: dock_area:
+        style = 'new-moon'
+        layout = VSplitLayout( 'Surface', 'Control', sizes=[ 100, 30 ] )
+
+        ViewDockItem: dock_item_surf:
+            view_name = 'Surface'
+
+        ControlsDockItem: dock_item_ctrl:
+            view_name = 'Control'
+
+
 enamldef Main( MainWindow ):
     ''' vtk example '''
-    title        = 'Enaml Surface 3D Demo'
-    initial_size = ( 800, 800 )
+    attr data
+    attr controller = SurfaceModelController( data )
+
+    title        = 'VTK Surface 3D Demo'
+    initial_size = ( 800, 600 )
 
     closed :: onClose()
 
-    attr data
-    attr controller = SurfaceModelController( data )
+    alias dock
+
+    ViewDockLayout: dock:
+        pass
 
     MenuBar:
         Menu:
@@ -52,37 +177,3 @@ enamldef Main( MainWindow ):
                 text = 'Exit'
                 triggered ::
                     close()
-
-    Container:
-
-        padding = 5
-        constraints = [
-            vbox( hbox( lbl, spacer, data_type, color_map ), view ),
-        ]
-
-        Label: lbl:
-            text = '3D Surface Visualization'
-            background = '#efefef'
-            font = 'bold 12pt "Segoe UI"'
-            hug_width = 'weak'
-
-        ObjectCombo: data_type:
-            constraints =  [ width == 300 ]
-            items       = sorted( controller.dataTypes )
-            editable    = False
-            selected    = sorted( controller.dataTypes )[0]
-            selected    ::
-                controller.selected_data = controller.dataStore[ selected ]
-
-        ObjectCombo: color_map:
-            constraints =  [ width == 300 ]
-            items       = sorted( controller.colorMaps)
-            editable    = False
-            selected    = sorted( controller.colorMaps )[0]
-            selected    ::
-                controller.selected_colormap = selected
-
-
-        VTKContainer: view:
-            plot_data  << controller.selected_data
-            properties << {}

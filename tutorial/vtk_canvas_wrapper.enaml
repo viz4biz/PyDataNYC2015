@@ -8,7 +8,7 @@ from utils import load_icon
 from enaml.widgets.color_dialog import ColorDialog
 
 
-enamldef VTKCanvasWrapper(Container):
+enamldef VTKCanvasWrapper( Container ):
 
     alias view
     attr controller

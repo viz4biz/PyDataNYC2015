@@ -20,7 +20,7 @@ def getRenderModel( view=None, data=None, properties=None, **kwargs ):
 
 
 enamldef VTKContainer( Container ): vtk_cont:
-    ''' vtk container that encapsulates VTKCanvas for surface visualization '''
+    ''' VTK container that encapsulates VTKCanvas for surface visualization '''
 
     # settable by user
     attr plot_data
