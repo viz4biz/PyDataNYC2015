@@ -1,0 +1,55 @@
+"""
+Slider control
+"""
+
+from enaml.layout.api import hbox, spacer, vbox, align
+from enaml.widgets.api import Container, Border, Label, Slider
+
+
+enamldef SliderControl( Container ):
+    ''' custom slider control '''
+
+    attr info_label      = 'Test'
+    attr min_value       = 0
+    attr max_value       = 100
+    attr slider_value    = 0
+    attr step_value      = 1
+    attr page_step_value = 10
+    attr interval_value  = 5
+    attr tick_postion    = 'no_ticks'
+
+    border      = Border( line_style='plain', line_width=1 )
+    padding     = ( 5, 5, 5, 5 )
+    foreground  = '#cdcdcd'
+    constraints = [
+        vbox( l, hbox( mi, spacer, v, spacer, mx ), sl ),
+        align( 'left', mi, sl ),
+        align( 'right', mx, sl ),
+        align( 'h_center', v, sl ),
+    ]
+
+    Slider: sl:
+        minimum       = min_value
+        maximum       = max_value
+        single_step   = step_value
+        page_step     = page_step_value
+        tick_interval = interval_value
+        tick_position = tick_postion
+        hug_width     = 'weak'
+        value         := slider_value
+
+    Label: l:
+        text = info_label
+        foreground  = '#000000'
+
+    Label: v:
+        text << '%d' % sl.value
+        foreground  = '#000000'
+
+    Label: mi:
+        text = '%d' % min_value
+        foreground  = '#000000'
+
+    Label: mx:
+        text = '%d' % max_value
+        foreground  = '#000000'
