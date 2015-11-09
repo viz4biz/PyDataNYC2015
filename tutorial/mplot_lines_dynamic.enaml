@@ -29,7 +29,6 @@ class ModelController( Atom ):
         if change:
             value = change.get( 'value' )
             if value:
-                self.figure.suptitle( value )
                 if self.canvas:
                     deferred_call( self.canvas.draw )
 
@@ -40,8 +39,8 @@ class ModelController( Atom ):
                 valuef = float(value)/2.
                 if self.plot:
                     plot_lines( self.plot, ( valuef, self.scale_factor[1], self.scale_factor[2] ) )
-                    if self.canvas:
-                        deferred_call( self.canvas.draw )
+                    #if self.canvas:
+                    #    deferred_call( self.canvas.draw )
 
 
 enamldef ConfigPopup( PopupView ): popup:
@@ -79,7 +78,7 @@ def plot_lines( plt, params ):
     x = np.linspace(0, 10)
     shape = 50
 
-    with style.context( 'fivethirtyeight' ):
+    with style.context( 'darkish' ):
         for param in params:
             plt.plot(x, np.sin(x) + param * x + np.random.randn(shape))
 
@@ -87,16 +86,18 @@ def plot_lines( plt, params ):
 def get_figure( shape=50, params=( 1, 0.5, 2 ), title='Demo' ):
     """ create Figure """
 
-    with style.context( 'fivethirtyeight' ):
+    with style.context( 'darkish' ):
         fig = Figure()
-        plt = fig.add_subplot(1, 1, 1)
-
+        plt = fig.add_subplot(1, 1, 1, alpha=0.5, title=title, xlabel='Test', ylabel='Data')
+        plt.hold( False )
         plot_lines( plt, params )
-        fig.suptitle( title )
         return fig, plt
 
 
-enamldef Main(Window):
+enamldef Main( Window ):
+
+    icon = load_icon('application-blue.png')
+    initial_size = (800, 600)
 
     attr custom_title = ''
     title = custom_title

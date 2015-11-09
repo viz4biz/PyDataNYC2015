@@ -7,16 +7,21 @@ from enaml.widgets.api import Window, Container, MPLCanvas, CheckBox, ComboBox, 
 
 from matplotlib.figure import Figure
 from matplotlib import style
+import pandas as pd
+import numpy as np
 
-style.use( 'dark_background' )
 
 fig1 = Figure()
-ax1 = fig1.add_subplot(111)
-ax1.plot([1, 2, 3])
+ts = pd.Series(np.random.randn(1000), index=pd.date_range('1/1/2015', periods=1000))
+ts = ts.cumsum()
+ax1 = fig1.add_subplot(111, title='Data 1', xlabel='Dates', ylabel='Data')
+ax1.plot(ts.index, ts.values, linestyle='.', marker='x')
 
 fig2 = Figure()
-ax2 = fig2.add_subplot(111)
-ax2.plot([5, 2, 8, 1])
+ts2 = pd.Series(np.random.randn(1000), index=pd.date_range('1/1/2015', periods=1000))
+ts2 = ts2.cumsum()
+ax2 = fig2.add_subplot(111, title='Data2', xlabel='Dates', ylabel='Data')
+ax2.plot(ts2.index, ts2.values)
 
 
 figures = {
@@ -32,6 +37,7 @@ def on_key_press( *args, **kwargs ):
 
 enamldef Main(Window):
 
+    attr mplot_style
     attr custom_title = ''
     title = custom_title
 

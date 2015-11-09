@@ -1,0 +1,285 @@
+"""
+Matplotlib demo
+"""
+
+from atom.api import Atom, Str, List, Value, Int, observe
+from enaml.core.api import Include, Conditional
+from enaml.layout.api import vbox, hbox, spacer, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
+from enaml.widgets.api import Window, Container, CheckBox, ComboBox, ObjectCombo, Label, PopupView, Form, Slider, Field, PushButton, DockArea, DockItem, GroupBox
+from mpl_canvas_container import MPLCanvasContainer
+from utils import load_icon
+from colors import LINE_COLORS
+from enaml.application import deferred_call
+
+from matplotlib.figure import Figure
+from matplotlib import style, cm
+import numpy as np
+import pandas as pd
+
+
+TICKERS = [ 'MSFT', 'APPL', 'IBM', 'GOOG', 'HPE' ]
+
+def addPlot( area, floating=True ):
+    ''' add grid to the area '''
+    items = [ i for i in area.children if type( i ) == PlotDockItem ]
+    view_id = len( items ) + 1
+    name = 'PricePlot #%d' % ( view_id )
+    title = 'Price Plot Visualization #%d' % ( view_id )
+
+    position = 'right'
+    index = -1
+
+    tgt  = area.dock_items()[ index ].name if area.dock_items() else ''
+    view = PlotDockItem( area, view_name=name, title=title, closable=True )
+    if floating:
+        op = FloatItem( item=name )
+    else:
+        op = InsertItem( item=name, target=tgt, position=position )
+    area.update_layout( op )
+
+
+class FigureModel( Atom ):
+
+    controller = Value()
+    figure = Value()
+    axes = Value()
+    title = Str()
+    xlabel = Str()
+    ylabel = Str()
+    data = Value()
+    start_date = Str( default='1/1/2010')
+    current_data_sets = List()
+    current_data_len = Int( default=1 )
+    periods = Int( default=100 )
+
+    def __init__( self, title=None, xlabel=None, ylabel=None ):
+        """ default init  """
+        self.title = title
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        self.figure = Figure()
+        self.figure.clear()
+        self.axes = self.figure.add_subplot( 1, 1, 1, title=title, xlabel=xlabel, ylabel=ylabel )
+        self.axes.xaxis_date()
+        self.current_data_sets = [ TICKERS[0] ]
+        self.current_data_len = 1
+        self.make_data()
+        self.plot_lines()
+
+    def apply_labels( self ):
+        """ apply labels """
+        self.axes.set_title( self.title )
+        self.axes.set_xlabel( self.xlabel )
+        self.axes.set_ylabel( self.ylabel )
+
+    def make_data( self ):
+        """ make data """
+        df = pd.DataFrame()
+        for ticker in self.current_data_sets:
+            ts = pd.Series( np.random.randn( self.periods ), index=pd.date_range(self.start_date, periods=self.periods ) )
+            ts = ts.cumsum()
+            df[ 'price_%s' % ticker ] = ts
+        self.data = df
+
+    def plot_lines( self ):
+        """ plot random lines """
+        for ticker in self.current_data_sets:
+            self.axes.plot( self.data.index, self.data[ 'price_%s' % ticker ], linestyle='-', marker='', linewidth=2  )
+        self.axes.legend( [ 'Price %s' % ticker for ticker in self.current_data_sets ] )
+
+    def add_data_set( self ):
+        """ add date set  """
+        for ticker in TICKERS:
+            if ticker not in self.current_data_sets:
+                self.current_data_sets.append( ticker )
+                self.current_data_len = len( self.current_data_sets )
+                break
+
+    def refresh_plot( self ):
+        """ refresh current plot """
+        if self.controller is not None:
+            self.controller.plot_lines()
+            self.controller.canvas.draw()
+
+    def update_data_set( self, ticker ):
+        """ updat current data set """
+        if ticker not in self.current_data_sets:
+            self.current_data_sets.append( ticker )
+            self.current_data_len = len( self.current_data_sets )
+            deferred_call( self.refresh_plot )
+
+    @observe( 'title', 'xlabel', 'ylabel' )
+    def _update_labels( self, change ):
+        if change:
+            value = change.get( 'value' )
+            if value:
+                if self.controller is not None:
+                    self.apply_labels()
+                    deferred_call( self.controller.canvas.draw )
+
+
+class ModelController( Atom ):
+
+    canvas = Value()
+    figure_model = Value()
+
+    def __init__( self, canvas=None, figure_model=None ):
+        """ default init """
+        self.canvas = canvas
+        self.figure_model = figure_model
+        figure_model.controller = self
+
+    def plot_lines( self ):
+        """ replot lines  """
+        if self.figure_model:
+            self.figure_model.axes.clear()
+            self.figure_model.apply_labels()
+            self.figure_model.make_data()
+            self.figure_model.plot_lines()
+            self.canvas.draw()
+
+
+enamldef ConfigPopup( PopupView ): popup:
+    foreground = 'white'
+    background = 'rgba(30, 30, 30, 0.85)'
+
+    parent_anchor << (0.5, 0.5)
+    anchor << (0.5, 0.0)
+    arrow_size << 20
+    arrow_edge << 'top'
+    offset << (0,0)
+
+    Form:
+        padding = 20
+        Label:
+            foreground = 'white'
+            text = 'Title'
+        Field:
+            text := nonlocals.controller.figure_model.title
+        Label:
+            foreground = 'white'
+            text = 'X Label'
+        Field:
+            text := nonlocals.controller.figure_model.xlabel
+        Label:
+            foreground = 'white'
+            text = 'Y Label'
+        Field:
+            text := nonlocals.controller.figure_model.ylabel
+
+
+def on_key_press( *args, **kwargs ):
+    """ on key press event """
+    print '>>> press ', args, kwargs
+
+
+def get_figure( title='Demo', xlabel=None, ylabel=None ):
+    """ create Figure """
+
+    figure_model = FigureModel( title=title, xlabel=xlabel, ylabel=ylabel )
+    return figure_model
+
+
+enamldef PlotDockArea( DockArea ):
+    ''' main dock area '''
+    pass
+
+
+enamldef Controls( Container ):
+    padding = 2
+    attr index = 0
+    attr plot_controller
+
+    ObjectCombo: o:
+        items = TICKERS
+        selected << plot_controller.figure_model.current_data_sets[index]
+        selected ::
+            deferred_call( plot_controller.figure_model.update_data_set, selected )
+
+
+enamldef PlotDockItem( DockItem ): dock_item:
+
+    attr figure_model = get_figure( title='Demo Prices', xlabel='Time', ylabel='Price')
+    attr controller = ModelController( canvas=mpl.canvas, figure_model=figure_model )
+    attr view_name
+
+    name = view_name
+    title = 'Price Plot Visualization'
+
+    Container:
+        padding = 5
+        constraints = [ hbox( vbox( mpl, hbox( b, r, p ) ), ctrl ), b.width == r.width, p.width == b.width ]
+
+        MPLCanvasContainer: mpl:
+            mpl_figure << controller.figure_model.figure
+            mpl_event_actions << [ ( 'key_press_event', on_key_press ), ]
+
+        PushButton: b:
+            text = 'Config'
+            icon = load_icon('control-270.png')
+            clicked ::
+                ConfigPopup( self ).show()
+
+        PushButton: r:
+            text = 'Refresh'
+            icon = load_icon( 'arrow-circle.png')
+            clicked ::
+                controller.plot_lines()
+
+        PushButton: p:
+            text = 'Add Plot'
+            icon = load_icon( 'plus.png' )
+            clicked ::
+                addPlot( nonlocals.dock.dock_area, False )
+
+        GroupBox: ctrl:
+            title = 'Controls'
+            padding = 5
+            constraints = [ vbox( ba, o, spacer ) ]
+
+            PushButton: ba:
+                icon = load_icon( 'plus.png' )
+                text = 'Add Data'
+                clicked ::
+                    controller.figure_model.add_data_set()
+                    controller.figure_model.refresh_plot()
+
+            Container: o:
+                Include: inc:
+                    objects << [ Controls( index=i, plot_controller=controller ) for i in xrange( controller.figure_model.current_data_len ) ]
+
+
+enamldef PlotDockLayout( Container ):
+    ''' main layout '''
+    padding = 2
+    alias dock_area
+    alias dock_item_plot
+
+    constraints = [
+            vbox( dock_area )
+        ]
+
+    PlotDockArea: dock_area:
+        style = 'new-moon'
+        layout = HSplitLayout( 'PricePlot' )
+
+        PlotDockItem: dock_item_plot:
+            view_name = 'PricePlot'
+
+
+enamldef Main( Window ): win:
+
+    icon = load_icon('applications-blue.png')
+    initial_size = (800, 600)
+
+    attr custom_title = ''
+    title = custom_title
+    attr mplot_style = ''
+
+    alias dock
+
+    PlotDockLayout: dock:
+        pass
+
+    initialized ::
+        pass

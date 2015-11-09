@@ -22,15 +22,14 @@ def get_figure( shape=50, params=( 1, 0.5, 2 ) ):
 
     x = np.linspace(0, 10)
 
-    with style.context( 'fivethirtyeight' ):
-        fig = Figure()
-        plt = fig.add_subplot(1, 1, 1)
+    fig = Figure()
+    plt = fig.add_subplot(1, 1, 1)
 
-        plt.plot(x, np.sin(x) + params[0] * x + np.random.randn(shape))
-        plt.plot(x, np.sin(x) + params[1] * x + np.random.randn(shape))
-        plt.plot(x, np.sin(x) + params[2] * x + np.random.randn(shape))
+    plt.plot(x, np.sin(x) + params[0] * x + np.random.randn(shape))
+    plt.plot(x, np.sin(x) + params[1] * x + np.random.randn(shape))
+    plt.plot(x, np.sin(x) + params[2] * x + np.random.randn(shape))
 
-        return fig
+    return fig
 
 
 enamldef Main(Window):
@@ -44,4 +43,4 @@ enamldef Main(Window):
         mpl_event_actions << [ ( 'key_press_event', on_key_press ), ]
 
     initialized ::
-        style.use( mplot_style )
+        pass

@@ -11,6 +11,8 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 GRAY = (200, 200, 200)
 
+LINE_COLORS = ['#AB51BA', '#CC7832', '#628759', '#4674A9', '#B53B48', '#808080', '#30a2da', '#fc4f30',
+               '#e5ae38', '#6d904f', '#8b8b8b']
 
 COLOR_MAPS = ['Accent', 'Blues', 'BrBG', 'BuGn', 'BuPu', 'Dark2', 'GnBu', 'Greens', 'Greys', 'OrRd', 'Oranges', 'PRGn',
               'Paired', 'Pastel1', 'Pastel2', 'PiYG', 'PuBu', 'PuBuGn', 'PuOr', 'PuRd', 'Purples', 'RdBu', 'RdGy',

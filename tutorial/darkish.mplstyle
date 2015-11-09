@@ -1,0 +1,57 @@
+#Author: Pawel Potocki
+
+#backend      : macosx
+#backend.qt4 : PyQt4 
+toolbar      : toolbar2
+
+
+lines.linewidth: 2
+lines.solid_capstyle: butt
+lines.antialiased : True
+
+legend.fancybox: true
+
+axes.color_cycle: AB51BA, CC7832, 628759, 4674A9, B53B48, 808080, 30a2da, fc4f30, e5ae38, 6d904f, 8b8b8b
+axes.facecolor: 2B2B2B # 272B30
+axes.labelsize: large
+axes.axisbelow: true
+axes.grid: true
+axes.edgecolor: 52575C
+axes.linewidth: 1.0
+axes.titlesize: x-large
+axes.labelcolor: DDDDDD
+
+patch.facecolor: blue
+patch.linewidth: 0.5
+patch.edgecolor: 2B2B2B # 272B30
+patch.antialiased: True
+
+svg.fonttype: path
+
+grid.color		  :   52575C
+grid.linestyle    :   :       # dotted
+grid.linewidth    :   1.0     # in points
+grid.alpha        :   0.75    # transparency, between 0.0 and 1.0
+
+xtick.color: DDDDDD
+xtick.major.size: 3
+xtick.minor.size: 0
+xtick.direction: out
+
+ytick.color: DDDDDD
+ytick.major.size: 1
+ytick.minor.size: 0
+ytick.direction: out
+
+text.color: DDDDDD
+font.size: 11.0
+
+savefig.edgecolor: DDDDDD
+savefig.facecolor: 2B2B2B # 272B30
+
+figure.subplot.left: 0.08
+figure.subplot.right: 0.95 
+figure.subplot.bottom: 0.09
+figure.facecolor: 2B2B2B # 272B30
+figure.edgecolor: DDDDDD # 2B2B2B # 272B30
+
