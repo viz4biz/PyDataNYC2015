@@ -1,0 +1,149 @@
+"""
+Matplotlib demo
+"""
+
+from enaml.layout.api import vbox, hbox, spacer, align
+from enaml.widgets.api import Window, Container, MPLCanvas, CheckBox, ComboBox, ObjectCombo, Label, PopupView, Slider, PushButton, Form
+
+from matplotlib.figure import Figure
+from matplotlib import style, cm
+from datasources import grid_data
+
+from atom.api import Atom, Value, Int, List, Str, observe
+from utils import load_icon
+from enaml.application import deferred_call
+from colors import get_colormaps
+
+
+def on_key_press( *args, **kwargs ):
+    """ on key press event """
+    print '>>> press ', args, kwargs
+
+
+class GridModel( Atom ):
+    canvas = Value()
+    figure = Value()
+    axes = Value()
+    cbar = Value()
+    npoints = Int( default=200 )
+    ncontours = Int( default=15 )
+    color_maps = List()
+    colormap = Str( default='rainbow' )
+
+    def __init__(self, canvas=None):
+        self.canvas = canvas
+        self.color_maps = get_colormaps()
+        self.figure = Figure()
+        self.figure.clear()
+        self.axes = self.figure.add_subplot( 1, 1, 1, title='Grid Data Demo (%d points)' % self.npoints, xlabel='Data', ylabel='Data' )
+        self.init_grid_data()
+
+    def init_grid_data( self ):
+        """ create Figure """
+        xi, yi, zi = grid_data(self.npoints)
+
+        cs = self.axes.contour(xi, yi, zi, self.ncontours, linewidths=0.5, colors='k', xlim=(-2,2), ylim=(-2,2))
+        csf = self.axes.contourf(xi, yi, zi, self.ncontours, cmap=getattr( cm, self.colormap ), vmax=abs(zi).max(), vmin=-abs(zi).max(), xlim=(-2,2), ylim=(-2,2))
+
+        self.cbar = self.figure.colorbar(csf, cmap=getattr( cm, self.colormap ), alpha=0.5)
+
+    def draw_labels( self ):
+        """ apply labels """
+        self.axes.set_title( 'Grid Data Demo (%d points)' % self.npoints )
+        self.axes.set_xlabel( 'Data' )
+        self.axes.set_ylabel( 'Data' )
+
+    def plot_grid_data( self ):
+        """ create Figure """
+        self.axes.clear()
+
+        self.draw_labels()
+
+        xi, yi, zi = grid_data(self.npoints)
+
+        cs = self.axes.contour(xi, yi, zi, self.ncontours, linewidths=0.5, colors='k', xlim=(-2,2), ylim=(-2,2))
+        csf = self.axes.contourf(xi, yi, zi, self.ncontours, cmap=getattr( cm, self.colormap ), vmax=abs(zi).max(), vmin=-abs(zi).max(), xlim=(-2,2), ylim=(-2,2))
+
+        self.cbar.update_bruteforce( csf )
+        self.cbar.set_cmap(getattr( cm, self.colormap ))
+
+    @observe( 'ncontours', 'colormap', 'npoints' )
+    def _on_changes( self, change):
+        """ observe contours change """
+        if change and change.get( 'type' ) != 'create':
+            value = change.get( 'value' )
+            if value:
+                self.plot_grid_data()
+                deferred_call( self.canvas.draw )
+
+
+enamldef ConfigPopup( PopupView ): popup:
+    foreground = 'white'
+    background = 'rgba(30, 30, 30, 0.85)'
+
+    parent_anchor << (0.5, 0.5)
+    anchor << (0.5, 0.0)
+    arrow_size << 20
+    arrow_edge << 'top'
+    offset << (0,0)
+
+    Form:
+        padding = 20
+        Label:
+            foreground = 'white'
+            text = 'Contours'
+        Slider:
+            minimum = 1
+            maximum = 50
+            value := nonlocals.grid_model.ncontours
+
+
+enamldef Main(Window): win:
+
+    attr custom_title = ''
+    title = custom_title
+    attr mplot_style = 'dark_background'
+
+    alias canvas
+    attr grid_model = GridModel( canvas=canvas )
+
+    Container:
+        padding = 5
+        constraints = [
+            vbox(
+                canvas,
+                hbox(l, obox, check, l2, cbox, b, spacer),
+            ),
+            align( 'v_center', l, obox, check, l2, cbox, b )
+        ]
+
+        Label: l:
+            text = 'Toolbar location'
+
+        ObjectCombo: obox:
+            items = [ 'top', 'bottom' ]
+            selected = 'bottom'
+            selected ::
+                canvas.toolbar_location = selected
+
+        CheckBox: check:
+            text = 'Toolbar Visible'
+            checked := canvas.toolbar_visible
+
+        PushButton: b:
+            text = 'Configure'
+            icon = load_icon('plus.png')
+            clicked ::
+                ConfigPopup( self ).show()
+
+        Label: l2:
+            text = 'Colormaps'
+
+        ObjectCombo: cbox:
+            items = grid_model.color_maps
+            selected := grid_model.colormap
+
+        MPLCanvas: canvas:
+            figure << grid_model.figure
+            toolbar_location << obox.selected
+            event_actions << [ ( 'key_press_event', on_key_press ), ]

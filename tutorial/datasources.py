@@ -171,7 +171,7 @@ def timeTSData():
     return [data]
 
 
-def grid_data():
+def grid_data(num_data=200):
     """
     sample grid data
     """
@@ -180,13 +180,13 @@ def grid_data():
     import numpy as np
 
     seed(0)
-    npts = 200
+    npts = num_data
     x = uniform(-2, 2, npts)
     y = uniform(-2, 2, npts)
     z = x*np.exp(-x**2 - y**2)
     # define grid.
-    xi = np.linspace(-2.1, 2.1, 100)
-    yi = np.linspace(-2.1, 2.1, 200)
+    xi = np.linspace(-2.1, 2.1, npts)
+    yi = np.linspace(-2.1, 2.1, npts)
     # grid the data.
     zi = griddata(x, y, z, xi, yi, interp='linear')
 

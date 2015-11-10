@@ -11,6 +11,7 @@ from enaml.widgets.color_dialog import ColorDialog
 
 def getRenderModel( view=None, data=None, properties=None, **kwargs ):
     ''' get surface model given data and properties '''
+    print '>>> creat new model'
     return VTKSurface3DModelController( data = data,
                                         numOfRenderers = kwargs.get( 'renderer_views', 1 ),
                                         view = view,
@@ -25,9 +26,10 @@ enamldef VTKContainer( Container ): vtk_cont:
     # settable by user
     attr plot_data
     attr properties
+    alias vtk_view
 
     # calculated or settable that includes data and properties
-    attr model_controller << getRenderModel( vtk_view, plot_data, properties )
+    attr model_controller << getRenderModel( view=vtk_view, data=plot_data, properties=properties )
 
     padding = 5
     constraints = [ vbox( vtk_view, controlls ) ]

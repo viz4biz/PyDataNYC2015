@@ -8,11 +8,8 @@ from enaml.qt.qt_application import QtApplication
 
 def run_demo():
     with enaml.imports():
-        #from mplot_demo_dynamic import Main
-        #from mplot_demo_realtime import Main
-        #from mplot_demo_multi import Main
-        #from mplot_demo_docks import Main
-        from mplot_demo_controls import Main
+        #from griddata_demo_ui import Main
+        from griddata_demo_model_ui import Main
 
     app = QtApplication()
 

@@ -3,6 +3,9 @@ Colors database
 """
 import cPickle as pickle
 import vtk
+from matplotlib import cm
+import matplotlib.colors
+
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -19,7 +22,7 @@ COLOR_MAPS = ['Accent', 'Blues', 'BrBG', 'BuGn', 'BuPu', 'Dark2', 'GnBu', 'Green
               'RdPu', 'RdYlBu', 'RdYlGn', 'Reds', 'Set1', 'Set2', 'Set3', 'Spectral', 'YlGn', 'YlGnBu', 'YlOrBr',
               'YlOrRd', 'autumn', 'binary', 'bone', 'cool', 'copper', 'flag', 'gist_earth', 'gist_gray', 'gist_heat',
               'gist_ncar', 'gist_rainbow', 'gist_stern', 'gist_yarg', 'gray', 'hot', 'hsv', 'jet', 'pink', 'prism',
-              'spectral', 'spring', 'summer', 'winter']
+              'spectral', 'spring', 'summer', 'winter', 'rainbow']
 
 
 def load_colormaps():
@@ -37,13 +40,13 @@ def load_colormap(name='hot'):
     return maps.get(name, [])
 
 
-def buildColormap(color='blue-red', reversed=True):
+def buildColormap(color='blue-red', is_reversed=True):
         clut = vtk.vtkLookupTable()
         luts = load_colormaps()
 
         if color in luts:
             lut = luts[color]
-            if reversed:
+            if is_reversed:
                 lut.reverse()
             clut.SetNumberOfColors(len(lut))
             clut.Build()
@@ -82,3 +85,17 @@ def buildColormap(color='blue-red', reversed=True):
         clut.Build()
 
         return clut
+
+
+def get_colormaps():
+    """
+    get matplotlib colormaps
+    """
+
+    color_maps = []
+    for k, v in cm.__dict__.iteritems():
+        if isinstance(v, matplotlib.colors.LinearSegmentedColormap):
+            if not k.endswith('_r'):
+                color_maps.append(k)
+
+    return sorted(color_maps)

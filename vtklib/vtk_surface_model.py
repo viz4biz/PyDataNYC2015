@@ -15,6 +15,7 @@ class VTKSurface3DModelController(VTKRenderController):
 
     def __init__(self, *args, **kwargs):
         """ default init """
+        print '>>> new model'
         VTKRenderController.__init__(self, *args, **kwargs)
         self.surfaces = []
         self.data = kwargs.pop('data', [])
@@ -39,7 +40,7 @@ class VTKSurface3DModelController(VTKRenderController):
         if self.surfaces:
             return self.surfaces[0]
 
-    def _observe__data(self, change):
+    def _observe_data(self, change):
         """ observe data change """
         if change:
             type_ = change.get('type')

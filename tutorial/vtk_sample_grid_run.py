@@ -1,5 +1,5 @@
 """
-Mplot demo runner
+vtk demo
 """
 
 import enaml
@@ -7,14 +7,15 @@ from enaml.qt.qt_application import QtApplication
 
 
 def run_demo():
+    """
+    bootstrap enaml in python
+    """
     with enaml.imports():
-        from mplot_demo_ui import Main
-        #from mplot_lines_demo import Main
-        #from mplot_lines_dynamic import Main
+        from vtk_sample_grid_view import Main
 
     app = QtApplication()
 
-    view = Main(custom_title='Matplotlib demo', mplot_style='darkish')
+    view = Main(custom_title='VTK Sample Grid Smaple Demo')
     view.show()
 
     # Start the application event loop
@@ -22,3 +23,7 @@ def run_demo():
 
 
 run_demo()
+
+
+
+

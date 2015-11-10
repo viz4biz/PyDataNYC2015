@@ -2,7 +2,7 @@
 VTk surface demo
 """
 
-from atom.api import Atom, List, Typed, Value, Dict, Str
+from atom.api import Atom, List, Typed, Value, Dict, Str, observe
 from enaml.widgets.color_dialog import ColorDialog
 from enaml.layout.api import hbox, spacer, vbox, align, HSplitLayout, VSplitLayout
 from enaml.widgets.api import MainWindow, Container, MenuBar, Border, Menu, Action, Label, PushButton, DockArea, DockItem, DockPane, ObjectCombo, GroupBox
@@ -11,6 +11,7 @@ from vtk_container import VTKContainer
 from colors import COLOR_MAPS
 from slider import SliderControl
 
+DEFAULT_COLORMAP = 'hot'
 
 def onClose( *args, **kwargs ):
     ''' on close callback '''
@@ -20,21 +21,32 @@ def onClose( *args, **kwargs ):
 class SurfaceModelController( Atom ):
     ''' create surface model '''
 
-    view          = Value()
-    dataTypes     = List()
-    dataValues    = List()
-    colorMaps     = List()
+    view = Value()
+    dataTypes = List()
+    dataValues = List()
+    colorMaps = List()
     selected_data = Value()
-    dataStore     = Dict()
+    dataStore = Dict()
+    view_properties = Dict()
     selected_colormap = Str()
 
     def __init__( self, data_values ):
         ''' default init '''
         self.dataValues    = data_values
-        self.colorMaps     = COLOR_MAPS
+        self.colorMaps     = sorted( COLOR_MAPS )
         self.dataTypes     = [ 'Surface %d'%i for i in xrange( len( self.dataValues ) ) ]
         self.dataStore     = dict( zip( self.dataTypes, self.dataValues ) )
         self.selected_data = self.dataValues[0]
+        self.selected_colormap = DEFAULT_COLORMAP
+        self.view_properties = { 'colorMap': self.selected_colormap }
+
+    @observe( 'selected_colormap' )
+    def _on_changes( self, change):
+        """ observe contours change """
+        if change and change.get( 'type' ) != 'create':
+            value = change.get( 'value' )
+            if value:
+                self.view_properties = { 'colorMap': value }
 
     def on_close(self, *args, **kwargs):
         ''' on close callback '''
@@ -120,7 +132,6 @@ enamldef ViewDockItem( DockItem ): dock_item:
             ObjectCombo: data_type:
                 constraints =  [ width == 300 ]
                 items       = sorted( nonlocals.controller.dataTypes )
-                editable    = False
                 selected    = sorted( nonlocals.controller.dataTypes )[0]
                 selected    ::
                     nonlocals.controller.selected_data = controller.dataStore[ selected ]
@@ -130,15 +141,14 @@ enamldef ViewDockItem( DockItem ): dock_item:
 
             ObjectCombo: color_map:
                 constraints =  [ width == 300 ]
-                items       = sorted( nonlocals.controller.colorMaps)
-                editable    = False
-                selected    = sorted( nonlocals.controller.colorMaps )[0]
+                items       = sorted( nonlocals.controller.colorMaps )
+                selected    = nonlocals.controller.selected_colormap
                 selected    ::
                     nonlocals.controller.selected_colormap = selected
 
             VTKContainer: view:
                 plot_data  << nonlocals.controller.selected_data
-                properties << {}
+                properties << nonlocals.controller.view_properties
 
     initialized ::
         print '>>> dock item '

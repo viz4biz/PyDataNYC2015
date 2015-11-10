@@ -662,7 +662,7 @@ class VTKSurface3D(object):
 
         return self.hasData
 
-    def buildColormap(self, color='blue-red', reverse=True):
+    def buildColormap(self, color='rainbow', reverse=True):
         clut = vtk.vtkLookupTable()
         luts = self.config.LookupTables() if self.config else {}
 
@@ -682,7 +682,7 @@ class VTKSurface3D(object):
         saturation_range = 1.0, 1.0
         value_range = 1.0, 1.0
 
-        if color.lower() == 'blue-red':
+        if color.lower() == 'rainbow':
             if reverse:
                 hue_range = 0.0, 0.6667
                 saturation_range = 1.0, 1.0
@@ -1075,7 +1075,7 @@ class VTKSurface3D(object):
         drawBox = args.get('drawBox', True)
         scaleFactor = args.get('scaleFactor', (1, 1, 1))
         autoscale = args.get('autoScale', True)
-        colorMap = args.get('colorMap', 'blue-red')
+        colorMap = args.get('colorMap', 'rainbow')
         reverseMap = args.get('reverseMap', False)
         drawGrid = args.get('drawGrid', False)
         resolution = args.get('gridResolution', 10)

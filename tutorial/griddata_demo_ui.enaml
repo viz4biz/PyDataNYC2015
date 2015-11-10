@@ -17,16 +17,16 @@ def on_key_press( *args, **kwargs ):
 
 def get_figure():
     """ create Figure """
-    xi, yi, zi = grid_data()
+    npoints = 200
+    xi, yi, zi = grid_data(npoints)
 
     fig = Figure()
-    axis = fig.add_subplot(1, 1, 1)
+    axis = fig.add_subplot(1, 1, 1, title='Grid Data Demo (%d points)' % npoints, xlabel='Data', ylabel='Data' )
 
     cs = axis.contour(xi, yi, zi, 15, linewidths=0.5, colors='k', xlim=(-2,2), ylim=(-2,2))
     csf = axis.contourf(xi, yi, zi, 15, cmap=cm.rainbow, vmax=abs(zi).max(), vmin=-abs(zi).max(), xlim=(-2,2), ylim=(-2,2))
 
     fig.colorbar(csf)
-    fig.suptitle('Grid Data Test (%d points)' % 100)
 
     return fig
 
@@ -72,4 +72,4 @@ enamldef Main(Window):
             event_actions << [ ( 'key_press_event', on_key_press ), ]
 
     initialized ::
-        style.use( mplot_style )
+       pass
