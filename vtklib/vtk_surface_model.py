@@ -21,9 +21,23 @@ class VTKSurface3DModelController(VTKRenderController):
         remapData = kwargs.pop('remapData', False)
         if remapData:
             self.data = remap(self.data)
-        renderers = kwargs.pop('numOfRenderers', 1)
-        for i in xrange(renderers):
-            self.surfaces.append(VTKSurface3D(self.data, parent=self, renderer=self.get_renderers()[i], **kwargs))
+        if self.renderers:
+            for i in xrange(len(self.renderers)):
+                self.surfaces.append(VTKSurface3D(self.data, parent=self, renderer=self.renderers[i], **kwargs))
+                print '>>> creating surface into renderer ', i
+
+    def get_surfaces(self):
+        """
+        get surfaces
+        """
+        return self.surfaces
+
+    def get_surface(self):
+        """
+        get main surface
+        """
+        if self.surfaces:
+            return self.surfaces[0]
 
     def _observe__data(self, change):
         """ observe data change """

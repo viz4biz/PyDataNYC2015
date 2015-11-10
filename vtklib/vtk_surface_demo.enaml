@@ -20,6 +20,7 @@ def onClose( *args, **kwargs ):
 class SurfaceModelController( Atom ):
     ''' create surface model '''
 
+    view          = Value()
     dataTypes     = List()
     dataValues    = List()
     colorMaps     = List()
@@ -34,6 +35,10 @@ class SurfaceModelController( Atom ):
         self.dataTypes     = [ 'Surface %d'%i for i in xrange( len( self.dataValues ) ) ]
         self.dataStore     = dict( zip( self.dataTypes, self.dataValues ) )
         self.selected_data = self.dataValues[0]
+
+    def on_close(self, *args, **kwargs):
+        ''' on close callback '''
+        pass
 
 
 enamldef ControlsDockItem( DockItem ): dock_ctrl:
@@ -78,11 +83,18 @@ enamldef ControlsDockItem( DockItem ): dock_ctrl:
             slider_value ::
                 pass
 
+    initialized ::
+        print '>>> sliders'
+
+    activated ::
+        print '>>> sliders active ', nonlocals.controller.view
+
 
 enamldef ViewDockItem( DockItem ): dock_item:
     ''' dock item view '''
 
     attr view_name
+    alias view
 
     title     << 'VTK Visualization'
     closable  =  True
@@ -128,6 +140,9 @@ enamldef ViewDockItem( DockItem ): dock_item:
                 plot_data  << nonlocals.controller.selected_data
                 properties << {}
 
+    initialized ::
+        print '>>> dock item '
+
 
 enamldef ViewDockArea( DockArea ):
     ''' main dock area '''
@@ -153,6 +168,9 @@ enamldef ViewDockLayout( Container ):
 
         ControlsDockItem: dock_item_ctrl:
             view_name = 'Control'
+
+    initialized ::
+        print '>>> dock area'
 
 
 enamldef Main( MainWindow ):
