@@ -29,27 +29,27 @@ enamldef SliderControl( Container ):
     ]
 
     Slider: sl:
-        minimum       = min_value
-        maximum       = max_value
-        single_step   = step_value
-        page_step     = page_step_value
-        tick_interval = interval_value
-        tick_position = tick_postion
+        minimum       << min_value
+        maximum       << max_value
+        single_step   << step_value
+        page_step     << page_step_value
+        tick_interval << interval_value
+        tick_position << tick_postion
         hug_width     = 'weak'
         value         := slider_value
 
     Label: l:
-        text = info_label
+        text << info_label
         foreground  = '#000000'
 
     Label: v:
-        text << '%d' % sl.value
+        text << ( '%d' % sl.value )
         foreground  = '#000000'
 
     Label: mi:
-        text = '%d' % min_value
+        text << ( '%d' % min_value )
         foreground  = '#000000'
 
     Label: mx:
-        text = '%d' % max_value
+        text <<  ( '%d' % max_value )
         foreground  = '#000000'

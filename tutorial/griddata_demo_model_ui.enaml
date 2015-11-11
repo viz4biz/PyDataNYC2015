@@ -35,7 +35,7 @@ class GridModel( Atom ):
         self.color_maps = get_colormaps()
         self.figure = Figure()
         self.figure.clear()
-        self.axes = self.figure.add_subplot( 1, 1, 1, title='Grid Data Demo (%d points)' % self.npoints, xlabel='Data', ylabel='Data' )
+        self.axes = self.figure.add_subplot( 1, 1, 1, title='Grid Data Demo (%d points)' % self.npoints, xlabel=' X Data', ylabel='Y Data' )
         self.init_grid_data()
 
     def init_grid_data( self ):

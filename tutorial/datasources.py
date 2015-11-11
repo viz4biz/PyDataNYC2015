@@ -192,3 +192,18 @@ def grid_data(num_data=200):
 
     return xi, yi, zi
 
+
+def scatter_data(num_points=50, max_radius=15):
+    """
+    sample scatter data
+    """
+
+    import numpy as np
+
+    N = 50
+    x = np.random.rand(num_points)
+    y = np.random.rand(num_points)
+    colors = np.random.rand(num_points)
+    area = np.pi * (max_radius * np.random.rand(num_points))**2
+
+    return x, y, colors, area

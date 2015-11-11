@@ -210,6 +210,7 @@ class VTKSurface3D(object):
         self.out = None
         self.mapper = None
         self.warp = None
+        self.colorbar = None
 
         if self.renderer is None:
             raise Exception('No renderer defined ')
@@ -708,6 +709,14 @@ class VTKSurface3D(object):
 
         return clut
 
+    def applyColorMap(self, colorMap='red-blue', reverse=False):
+        """
+        apply color map on the mapper
+        """
+        clut = self.buildColormap(colorMap, reverse)
+        self.mapper.SetLookupTable(clut)
+        self.colorbar.SetLookupTable(self.mapper.GetLookupTable())
+
     def makeCustomAxes(self, outline, outlinefilter):
         """ create custom axes """
         prop = vtk.vtkProperty()
@@ -1086,9 +1095,9 @@ class VTKSurface3D(object):
         xCutterOn = args.get('XCutterOn', True)
         yCutterOn = args.get('YCutterOn', True)
         zCutterOn = args.get('ZCutterOn', True)
-        xCutterPos = args.get('XCutterPos', 2)
-        yCutterPos = args.get('YCutterPos', 2)
-        zCutterPos = args.get('ZCutterPos', 0)
+        xCutterPos = args.get('XCutterPos', None)
+        yCutterPos = args.get('YCutterPos', None)
+        zCutterPos = args.get('ZCutterPos', None)
 
         self.parseArgs(**args)
 
@@ -1262,6 +1271,7 @@ class VTKSurface3D(object):
             self.renderer.AddActor(colorbar)
             self.actors.append(colorbar)
 
+        self.colorbar = colorbar
         self._addPlaneCutters(xactor, yactor, zactor, xCutterOn, yCutterOn, zCutterOn)
 
     def _addPlaneCutters(self, xactor, yactor, zactor, xCutterOn, yCutterOn, zCutterOn):

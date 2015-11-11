@@ -65,7 +65,7 @@ def nonedatarandom():
                 datax.append((y, numpy.nan))
             else:
                 datax.append((y, f(x, y)))
-            ind = ind + 1
+            ind += 1
         data.append((x, datax))
 
     return data

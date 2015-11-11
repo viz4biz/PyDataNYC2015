@@ -97,7 +97,7 @@ class ExtractModel(Atom):
         """
 
         # Here we create two ellipsoidal implicit functions and boolean them
-        # together tto form a "cross" shaped implicit function.
+        # together to form a "cross" shaped implicit function.
         quadric = vtk.vtkQuadric()
         quadric.SetCoefficients(.5, 1, .2, 0, .1, 0, 0, .2, 0, 0)
 

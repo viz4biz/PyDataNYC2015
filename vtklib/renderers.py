@@ -110,7 +110,6 @@ class VTKRenderController(Atom):
 
         self.setViewPorts()
         self.setCamera()
-        print '>>> done making renders ', len(self.renderers)
 
     def setViewPorts(self):
         """ set automatic viewports for renderers only for 2 and 4 """

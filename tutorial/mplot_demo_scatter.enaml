@@ -2,17 +2,17 @@
 Matplotlib demo
 """
 
-from atom.api import Atom, Str, List, Value, Int
+from atom.api import Atom, Str, List, Value, Int, observe
 from enaml.layout.api import vbox, hbox, spacer, align
-from enaml.widgets.api import Window, Container, CheckBox, ComboBox, ObjectCombo, Label, PopupView, Form, Slider, Field, PushButton, Timer
+from enaml.widgets.api import Window, Container, CheckBox, ComboBox, ObjectCombo, Label, PopupView, Form, Slider, Field, PushButton
 from mpl_canvas_container import MPLCanvasContainer
 from utils import load_icon
+from colors import LINE_COLORS
 from enaml.application import deferred_call
 
 from matplotlib.figure import Figure
 from matplotlib import style, cm
-import numpy as np
-import pandas as pd
+from datasources import scatter_data
 
 
 class FigureModel( Atom ):
@@ -23,7 +23,9 @@ class FigureModel( Atom ):
     title = Str()
     xlabel = Str()
     ylabel = Str()
-    periods = Int( default=1000 )
+    data_points = Int( default=50 )
+    max_radius = Int( default=15 )
+    data = Value()
 
     def __init__( self, title=None, xlabel=None, ylabel=None ):
         """ default init  """
@@ -32,8 +34,8 @@ class FigureModel( Atom ):
         self.ylabel = ylabel
         self.figure = Figure()
         self.figure.clear()
-        self.axes = self.figure.add_subplot( 1, 1, 1, title=title, xlabel=xlabel, ylabel=ylabel, )
-        self.axes.xaxis_date()
+        self.axes = self.figure.add_subplot( 1, 1, 1, title=title, xlabel=xlabel, ylabel=ylabel )
+        self.make_data()
         self.plot_lines()
 
     def apply_labels( self ):
@@ -42,23 +44,28 @@ class FigureModel( Atom ):
         self.axes.set_xlabel( self.xlabel )
         self.axes.set_ylabel( self.ylabel )
 
+    def make_data( self ):
+        """ make data """
+        return scatter_data(self.data_points, self.max_radius)
+
     def plot_lines( self ):
         """ plot random lines """
-        ts = pd.Series( np.random.randn( self.periods ), index=pd.date_range('1/1/2010', periods=self.periods ) )
-        ts = ts.cumsum()
-        self.axes.plot( ts.index, ts.values, linestyle='--', marker='x', linewidth=1 )
-        self.axes.legend( [ 'Price' ] )
+        x, y, colors, area = self.make_data()
+        self.axes.scatter(x, y, s=area, c=colors, alpha=0.5)
+        self.axes.legend( [ 'Scatter', ] )
 
-    def _observe_title( self, change ):
-        if change:
+    @observe( 'title', 'xlabel', 'ylabel' )
+    def _update_labels( self, change ):
+        if change and change.get( 'type' ) != 'create':
             value = change.get( 'value' )
             if value:
                 if self.controller is not None:
                     self.apply_labels()
-                    self.controller.canvas.draw()
+                    deferred_call( self.controller.canvas.draw )
 
-    def _observe_periods( self, change ):
-        if change:
+    @observe( 'data_points', 'max_radius' )
+    def _observe_data_change( self, change ):
+        if change and change.get( 'type' ) != 'create':
             value = change.get( 'value' )
             if value:
                 if self.controller is not None:
@@ -105,11 +112,28 @@ enamldef ConfigPopup( PopupView ): popup:
             text := nonlocals.controller.figure_model.title
         Label:
             foreground = 'white'
-            text = 'Periods'
+            text = 'X Label'
+        Field:
+            text := nonlocals.controller.figure_model.xlabel
+        Label:
+            foreground = 'white'
+            text = 'Y Label'
+        Field:
+            text := nonlocals.controller.figure_model.ylabel
+        Label:
+            foreground = 'white'
+            text = 'Points'
         Slider:
-            minimum = 500
-            maximum = 1500
-            value := nonlocals.controller.figure_model.periods
+            minimum = 10
+            maximum = 200
+            value := nonlocals.controller.figure_model.data_points
+        Label:
+            foreground = 'white'
+            text = 'Radius'
+        Slider:
+            minimum = 1
+            maximum = 50
+            value := nonlocals.controller.figure_model.max_radius
 
 
 def on_key_press( *args, **kwargs ):
@@ -133,7 +157,7 @@ enamldef Main( Window ):
     title = custom_title
     attr mplot_style = ''
 
-    attr figure_model = get_figure( title='Demo', xlabel='Time', ylabel='Data')
+    attr figure_model = get_figure( title='Scatter Demo', xlabel='Y Data', ylabel='y Data')
     attr controller = ModelController( canvas=mpl.canvas, figure_model=figure_model )
 
     Container:
@@ -156,13 +180,5 @@ enamldef Main( Window ):
             clicked ::
                 controller.plot_lines()
 
-        Timer: tm:
-            interval = 1000
-            single_shot = False
-            timeout ::
-                if controller is not None:
-                    controller.plot_lines()
-
-    activated ::
-        tm.stop()
-        tm.start()
+    initialized ::
+        pass

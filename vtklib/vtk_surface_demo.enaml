@@ -2,8 +2,9 @@
 VTk surface demo
 """
 
-from atom.api import Atom, List, Typed, Value, Dict, Str, observe
+from atom.api import Atom, List, Typed, Value, Dict, Str, Int, observe
 from enaml.widgets.color_dialog import ColorDialog
+from enaml.core.api import Include, Conditional
 from enaml.layout.api import hbox, spacer, vbox, align, HSplitLayout, VSplitLayout
 from enaml.widgets.api import MainWindow, Container, MenuBar, Border, Menu, Action, Label, PushButton, DockArea, DockItem, DockPane, ObjectCombo, GroupBox
 from enaml.application import deferred_call
@@ -21,7 +22,7 @@ def onClose( *args, **kwargs ):
 class SurfaceModelController( Atom ):
     ''' create surface model '''
 
-    view = Value()
+    vtk_container = Value()
     dataTypes = List()
     dataValues = List()
     colorMaps = List()
@@ -29,6 +30,21 @@ class SurfaceModelController( Atom ):
     dataStore = Dict()
     view_properties = Dict()
     selected_colormap = Str()
+
+    x_slice_min = Int(0)
+    x_slice_max = Int(10)
+    x_slice_value = Int(0)
+    x_slice_data = List()
+
+    y_slice_min = Int(0)
+    y_slice_max = Int(10)
+    y_slice_value = Int(0)
+    y_slice_data = List()
+
+    z_slice_min = Int(0)
+    z_slice_max = Int(10)
+    z_slice_value = Int(0)
+    z_slice_data = List()
 
     def __init__( self, data_values ):
         ''' default init '''
@@ -38,7 +54,11 @@ class SurfaceModelController( Atom ):
         self.dataStore     = dict( zip( self.dataTypes, self.dataValues ) )
         self.selected_data = self.dataValues[0]
         self.selected_colormap = DEFAULT_COLORMAP
-        self.view_properties = { 'colorMap': self.selected_colormap }
+        self.view_properties = { 'colorMap': self.selected_colormap,
+                                 'callbacks': { 'OnDataRange': self.on_data_range, 'OnCutterDataSet': self.on_cutter_data_set },
+                                 'XCutterPos': self.x_slice_value,
+                                 'YCutterPos': self.y_slice_value,
+                                 'ZCutterPos': self.z_slice_value, }
 
     @observe( 'selected_colormap' )
     def _on_changes( self, change):
@@ -46,7 +66,56 @@ class SurfaceModelController( Atom ):
         if change and change.get( 'type' ) != 'create':
             value = change.get( 'value' )
             if value:
-                self.view_properties = { 'colorMap': value }
+                self.view_properties.update( { 'colorMap': value } )
+                if self.vtk_container.model_controller.surface is not None:
+                    self.vtk_container.properties.update( { 'colorMap': value } )
+                    self.vtk_container.model_controller.surface.applyColorMap( value )
+                    deferred_call( self.vtk_container.vtk_view.render )
+
+    def _observe_x_slice_value( self, change ):
+        """ observe x slice """
+        if change and change.get( 'type' ) != 'create':
+            value = change.get( 'value' )
+            if value:
+                self.vtk_container.model_controller.surface.moveXCutter( value )
+
+    def _observe_y_slice_value( self, change ):
+        """ observe y slice """
+        if change and change.get( 'type' ) != 'create':
+            value = change.get( 'value' )
+            if value:
+                self.vtk_container.model_controller.surface.moveYCutter( value )
+
+    def _observe_z_slice_value( self, change ):
+        """ observe z slice """
+        if change and change.get( 'type' ) != 'create':
+            value = change.get( 'value' )
+            if value:
+                self.vtk_container.model_controller.surface.moveZCutter( value )
+
+    def on_cutter_data_set( self, *args, **kwargs ):
+        """ on y cutter data set """
+        pass
+
+    def on_data_range( self, *args, **kwargs ):
+        """ pass data range """
+        ranges = args[0]
+        self.x_slice_min = int( round( ranges[0][0] ) )
+        self.x_slice_max = int( round( ranges[0][1] ) )
+        self.x_slice_value = int( round( ranges[0][0] ) )
+        self.view_properties.update( { 'XCutterPos': self.x_slice_value  } )
+        self.vtk_container.properties.update( { 'XCutterPos': self.x_slice_value  } )
+        self.y_slice_min = int( round( ranges[1][0] ) )
+        self.y_slice_max = int( round( ranges[1][1] ) )
+        self.y_slice_value = int( round( ranges[1][0] ) )
+        self.view_properties.update( { 'YCutterPos': self.y_slice_value  } )
+        self.vtk_container.properties.update( { 'YCutterPos': self.y_slice_value  } )
+        self.z_slice_min = int( round( ranges[2][0] ) )
+        self.z_slice_max = int( round( ranges[2][1] ) )
+        self.z_slice_value = int( round( ranges[2][0] ) )
+        self.view_properties.update( { 'ZCutterPos': self.z_slice_value  } )
+        self.vtk_container.properties.update( { 'ZCutterPos': self.z_slice_value  } )
+        deferred_call( self.vtk_container.vtk_view.render )
 
     def on_close(self, *args, **kwargs):
         ''' on close callback '''
@@ -66,6 +135,7 @@ enamldef ControlsDockItem( DockItem ): dock_ctrl:
         hug_width = 'strong'
         hug_height = 'strong'
 
+
         constraints = [
             hbox( sl1, sl2, sl3 ),
             align( 'width', sl1, sl2, sl3 ),
@@ -73,40 +143,37 @@ enamldef ControlsDockItem( DockItem ): dock_ctrl:
 
         SliderControl: sl1:
             info_label = 'X Slice'
-            min_value = 0
-            max_value = 10
-            slider_value = 1
+            min_value << nonlocals.controller.x_slice_min
+            max_value << nonlocals.controller.x_slice_max
+            slider_value = nonlocals.controller.x_slice_value
             slider_value ::
-                pass
+                nonlocals.controller.x_slice_value = slider_value
 
         SliderControl: sl2:
             info_label = 'Y Slice'
-            min_value = 0
-            max_value = 10
-            slider_value = 1
+            min_value << nonlocals.controller.y_slice_min
+            max_value << nonlocals.controller.y_slice_max
+            slider_value = nonlocals.controller.y_slice_value
             slider_value ::
-                pass
+                nonlocals.controller.y_slice_value = slider_value
 
         SliderControl: sl3:
             info_label = 'Z Slice'
-            min_value = 0
-            max_value = 10
-            slider_value = 1
+            min_value << nonlocals.controller.z_slice_min
+            max_value << nonlocals.controller.z_slice_max
+            slider_value = nonlocals.controller.z_slice_value
             slider_value ::
-                pass
+                nonlocals.controller.z_slice_value = slider_value
 
     initialized ::
-        print '>>> sliders'
-
-    activated ::
-        print '>>> sliders active ', nonlocals.controller.view
+        pass
 
 
 enamldef ViewDockItem( DockItem ): dock_item:
     ''' dock item view '''
 
     attr view_name
-    alias view
+    alias vtk_container
 
     title     << 'VTK Visualization'
     closable  =  True
@@ -121,7 +188,7 @@ enamldef ViewDockItem( DockItem ): dock_item:
         Container:
             padding = 2
             constraints = [
-                vbox( hbox( lbl, spacer, data_type, l, color_map ), view ), align( 'v_center', lbl, data_type, l, color_map )
+                vbox( hbox( lbl, spacer, data_type, l, color_map ), vtk_container ), align( 'v_center', lbl, data_type, l, color_map )
             ]
 
             Label: lbl:
@@ -146,12 +213,12 @@ enamldef ViewDockItem( DockItem ): dock_item:
                 selected    ::
                     nonlocals.controller.selected_colormap = selected
 
-            VTKContainer: view:
+            VTKContainer: vtk_container:
                 plot_data  << nonlocals.controller.selected_data
                 properties << nonlocals.controller.view_properties
 
     initialized ::
-        print '>>> dock item '
+        nonlocals.controller.vtk_container = vtk_container
 
 
 enamldef ViewDockArea( DockArea ):
@@ -180,7 +247,7 @@ enamldef ViewDockLayout( Container ):
             view_name = 'Control'
 
     initialized ::
-        print '>>> dock area'
+        pass
 
 
 enamldef Main( MainWindow ):

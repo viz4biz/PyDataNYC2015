@@ -4,7 +4,7 @@ VTK surface demo run
 
 import enaml
 from enaml.qt.qt_application import QtApplication
-from datasources import zdata, dsin, dtx
+from datasources import zdata, dsin, dtx, dtv, nonedatarandom
 
 
 def run():
@@ -13,7 +13,7 @@ def run():
 
     app = QtApplication()
 
-    view = Main(data=[dsin(), zdata(), dtx()])
+    view = Main(data=[dsin(), zdata(), dtx(), dtv(), nonedatarandom()])
     view.show()
 
     # Start the application event loop

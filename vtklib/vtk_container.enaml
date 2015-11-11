@@ -11,7 +11,6 @@ from enaml.widgets.color_dialog import ColorDialog
 
 def getRenderModel( view=None, data=None, properties=None, **kwargs ):
     ''' get surface model given data and properties '''
-    print '>>> creat new model'
     return VTKSurface3DModelController( data = data,
                                         numOfRenderers = kwargs.get( 'renderer_views', 1 ),
                                         view = view,
