@@ -7,8 +7,7 @@ import vtk
 from atom.api import Atom, Dict, Value, Int
 from renderers import VTKRenderController
 from enaml.application import deferred_call
-
-VTK_DATA_ROOT = '/Users/pawel/src/VTKData'
+from constants import VTK_DATA_ROOT
 
 
 class RenderViewController(VTKRenderController):

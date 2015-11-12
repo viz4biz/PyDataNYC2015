@@ -1,0 +1,209 @@
+"""
+DateTime field wrapper
+"""
+
+from atom.api import Atom, Typed, Str, Value, Bool
+from enaml.core.declarative import d_
+from enaml.widgets.api import Container, Label, Field, Calendar, PopupView, PushButton, MainWindow, DateSelector
+from enaml.layout.api import hbox, align, grid
+from utils import load_icon
+from datetime import date as pydate
+
+
+def str2Date( date_str=None, date_format=None ):
+    """ convert sting to date """
+    if not date_str:
+        return None
+
+    import datetime
+    dt = datetime.datetime.strptime(date_str, date_format)
+    return datetime.date(dt.year, dt.month, dt.day)
+
+
+class DateModel( Atom ):
+    ''' date model class '''
+
+    _date     = Typed( pydate, factory=pydate.today )
+    _date_fld = Value()
+    _date_cnt = Value()
+
+
+enamldef ErrorPopup( PopupView ): err_popup:
+    ''' popup error when failed to parse date '''
+
+    attr error_msg
+
+    window_type    = 'popup'
+    parent_anchor  = ( 0.5, 1 )
+    anchor         = ( 0.5, 0 )
+    arrow_size     = 15
+    arrow_edge     = 'top'
+    arrow_position = 0.5
+    offset         = ( 0, 0 )
+
+    Container:
+        padding = 0
+        Field:
+            background = '#ff8080cc'
+            text << error_msg
+            hug_width = 'weak'
+            hug_height = 'strong'
+
+
+enamldef CalendarPopup( PopupView ): popup:
+    ''' popup box to display calendar '''
+
+    attr model
+
+    window_type    = 'popup'
+    parent_anchor  = ( 0.5, 1 )
+    anchor         = ( 0.5, 0 )
+    arrow_size     = 15
+    arrow_edge     = 'top'
+    arrow_position = 0.5
+    offset         = ( 0, 0 )
+
+    Container:
+        padding = 0
+        Calendar:
+            resist_width = 'ignore'
+            resist_height = 'ignore'
+            date << model._date
+            date ::
+                model._date = date
+                popup.close()
+
+
+def dateConvert( text, validator, date_format, model, fld ):
+    ''' validate and format date '''
+    try:
+        if validator is not None and callable( validator ):
+            date = validator( text )
+        else:
+            date = str2Date(text, date_format)
+
+        model._date = date
+        model._date_cnt.date = date
+        model._date_fld.text = model._date.strftime( date_format )
+        model._date_cnt.text_widget.setText( model._date_fld.text )
+        model._date_cnt.error_state = False
+        model._date_cnt.error_msg = ''
+    except Exception, e:
+        model._date_cnt.error_msg = str( e )
+        model._date_cnt.error_state = True
+        ErrorPopup( model._date_fld, error_msg=model._date_cnt.error_msg ).show()
+
+
+class DateFieldContainer( Container ):
+    ''' date field container '''
+
+    # user defined attributes
+    date = d_( Typed( pydate, factory=pydate.today ) )
+    date_format = d_( Str( '%Y-%m-%d' ) )
+    validator = d_( Value( default=None ) )
+
+    # internal attributes
+    text_widget = Value()
+    error_state = Bool()
+    error_msg = Str( '' )
+
+    def _observe_date( self, change ):
+        if change and change.get( 'type' ) != 'create':
+            value = change.get( 'value' )
+            self.widgets()[0].text = value.strftime( self.date_format )
+            self.date = value
+
+
+enamldef DateCalendarField( DateFieldContainer ): date_fld:
+    ''' date and calendar field, user defined attributes:
+
+        date:           date value
+        date_format:    python style date format
+        validator:      python function to validate and convert str to date
+        tooltip:        custom tooltip
+        calendar_popup: display calendar popup
+        icon_name:      display calendar icon
+    '''
+
+    # predefine defaults
+    minimum_size = ( 100, 20 )
+
+    # user defined attributes
+    attr size = ( width, height )
+    attr tooltip = ''
+    attr calendar_popup = True
+    attr icon_name = 'calendar-day.png'
+
+    # internal attributes
+    attr model = DateModel( _date=date, _date_fld=fld, _date_cnt=self )
+
+    constraints << [ hbox( *[ x.when( x.visible ) for x in widgets() ], spacing=2 ),
+                     align( 'v_center', *[ x.when( x.visible ) for x in widgets() ] ),
+                     width == size[0] ]
+    padding     = 0
+
+    Field: fld:
+        background << ( error_state and '#ff5050cc' or self.parent.background )
+        tool_tip << ( error_msg or date_fld.tooltip )
+        submit_triggers = [ 'lost_focus', 'return_pressed' ]
+        text << model._date.strftime( date_fld.date_format )
+        text ::
+            dateConvert( text, date_fld.validator, date_fld.date_format, model, self )
+
+        activated ::
+            date_fld.text_widget = self.proxy.widget
+
+    PushButton: btn:
+        visible    = calendar_popup
+        text       = ''
+        hug_width  = 'strong'
+        hug_height = 'strong'
+        icon       = load_icon( icon_name )
+        clicked ::
+            CalendarPopup( self, model=model ).show()
+
+
+############ Example ############
+
+
+class TestModel( Atom ):
+    ''' test model '''
+
+    test_date = Typed( pydate, factory=pydate.today )
+
+
+enamldef Main( MainWindow ):
+    ''' main test '''
+    title           = 'DateTime Field Tests'
+    initial_size    = ( 600, 300 )
+    attr test_model = TestModel( test_date=pydate.today() )
+
+    Container:
+        padding = 2
+        hug_width  = 'ignore'
+
+        constraints = [ grid( [ x for x in widgets() ],
+                        column_spacing = 10,
+                        column_align   = 'width',
+                        row_align      = 'v_center',
+                        margins        = 2, ) ]
+
+        Field:
+            text << str( test_model.test_date )
+
+        DateCalendarField: d1:
+            size = ( 200, 20 )
+            calendar_popup << True
+            date := test_model.test_date
+
+        DateCalendarField: d2:
+            calendar_popup << True
+            date := test_model.test_date
+            date_format = '%Y/%m/%d'
+
+        Label:
+            text << str( test_model.test_date )
+
+        DateSelector:
+            calendar_popup << True
+            date := test_model.test_date

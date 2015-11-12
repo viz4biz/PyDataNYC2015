@@ -1,5 +1,5 @@
 """
-Mplot demo runner
+Datetime field demo run
 """
 
 import enaml
@@ -8,12 +8,11 @@ from enaml.qt.qt_application import QtApplication
 
 def run_demo():
     with enaml.imports():
-        from griddata_demo_ui import Main
-        #from griddata_demo_model_ui import Main
+        from datetime_field import Main
 
     app = QtApplication()
 
-    view = Main(custom_title='Matplotlib demo', mplot_style='darkish')
+    view = Main()
     view.show()
 
     # Start the application event loop

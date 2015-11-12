@@ -39,7 +39,9 @@ enamldef ConfigPopup( PopupView ): popup:
         Slider:
             minimum = 1
             maximum = 100
-            value := nonlocals.controller.shrink_factor
+            value << nonlocals.controller.shrink_factor
+            value ::
+                nonlocals.controller.shrink_factor = value
         Label:
             foreground = 'white'
             text = 'Title'

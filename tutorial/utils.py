@@ -4,9 +4,7 @@ utils file
 import os
 from enaml.icon import Icon, IconImage
 from enaml.image import Image
-
-
-ICON_DIR = '/Users/pawel/src/fugue-icons-3/icons'
+from constants import ICON_DIR
 
 
 def get_icon(icon_name=None, default_icon='application-blue.png'):
