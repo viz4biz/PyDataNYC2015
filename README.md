@@ -17,15 +17,15 @@ folder into enaml folder in your anaconda distribution:
 
 
 ```sh
-$cp mpl_canvas.py vtk_canvas.py anaconda/lib/python2.7/site-packages/enaml/widgets
-$cp qt_mpl_canvas.py qt_vtk_canvas.py anaconda/lib/python2.7/site-packages/enaml/qt
+$ cp mpl_canvas.py vtk_canvas.py anaconda/lib/python2.7/site-packages/enaml/widgets
+$ cp qt_mpl_canvas.py qt_vtk_canvas.py anaconda/lib/python2.7/site-packages/enaml/qt
 ```
 
 You need to edit constants.py file in tutorial folder to reflect icons and data
 location on your machine.
 
 
-###Content
+###Contents
 
  - tutorial: this folder contains all the tutorial files
  - enaml: this folder contains updates to core Enaml files - to be submitted
