@@ -19,6 +19,7 @@ import pandas as pd
 
 TICKERS = [ 'MSFT', 'APPL', 'IBM', 'GOOG', 'HPE' ]
 
+
 def addPlot( area, floating=True ):
     ''' add grid to the area '''
     items = [ i for i in area.children if type( i ) == PlotDockItem ]

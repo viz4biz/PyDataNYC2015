@@ -198,8 +198,10 @@ enamldef Main( MainWindow ):
 
         DateCalendarField: d2:
             calendar_popup << True
-            date := test_model.test_date
             date_format = '%Y/%m/%d'
+            date := test_model.test_date
+            date ::
+                print '>>> date ', date
 
         Label:
             text << str( test_model.test_date )

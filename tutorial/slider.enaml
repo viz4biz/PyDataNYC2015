@@ -2,21 +2,94 @@
 Slider control
 """
 
+from atom.api import Atom, Float, Int
 from enaml.layout.api import hbox, spacer, vbox, align
-from enaml.widgets.api import Container, Border, Label, Slider
+from enaml.widgets.api import Container, Border, Label, Slider, MainWindow
+from enaml.core.declarative import d_
 
 
-enamldef SliderControl( Container ):
-    ''' custom slider control '''
+class SliderModel( Atom ):
+    """ slider model """
+
+    min_value = Float( 0.0 )
+    max_value = Float( 10.0 )
+    slider_value = Float( 0.0 )
+    step_value = Float( 0.0 )
+    page_step_value = Float( 5.0 )
+    scaled_value = Float( 0.0 )
+    intervals = Int( 0 )
+
+    sl_min_value = Int( 0 )
+    sl_max_value = Int( 10 )
+    sl_slider_value = Int( 0 )
+    sl_step_value = Int( 1 )
+    sl_page_step_value = Int( 5 )
+
+    delta = Float()
+    delta_inversed = Float()
+
+    def __init__( self, min_value, max_value, step_value, slider_value, intervals ):
+        """ initialize slider model """
+        self.min_value = min_value
+        self.max_value = max_value
+        self.step_value = step_value
+        self.slider_value = slider_value
+        self.intervals = intervals
+
+        if self.intervals > 0:
+            self.delta = ( ( self.max_value - self.min_value ) / float( self.intervals ) )
+            self.step_value = self.delta
+            self.delta_inversed = 1./self.delta
+        elif self.step_value > 0:
+            self.delta_inversed = 1.0
+            self.delta = 1.0
+
+        self.sl_min_value = int( self.min_value * self.delta_inversed )
+        self.sl_max_value = int( self.max_value  * self.delta_inversed )
+        self.sl_slider_value = int( self.slider_value * self.delta_inversed )
+        self.sl_step_value = 1
+
+    def _observe_sl_slider_value( self, change ):
+        """ observe sl slider value """
+        if change:
+            if change.get( 'type' ) != 'create':
+                value = change.get( 'value' )
+                self.scaled_value = value * self.step_value
+
+
+class SliderContainer( Container ):
+    """ slider container """
+
+    slider_value = d_( Float( 0 ) )
+
+    def _observe_slider_value( self, change ):
+        """ observe slider value """
+        if change:
+            if change.get( 'type' ) != 'create':
+                value = change.get( 'value' )
+
+
+enamldef SliderControl( SliderContainer ): slider_contr:
+    """ custom slider control - wrapper around plain slider - can be used to display float numbers
+        info_label: text display in the slider
+        min_value: min value of the slider
+        max_value: max value of the slider
+        slider_value: current value of the slider
+        intervals: by default step value is 1, you can provide intervals (whole number) to have different step
+        value
+    """
 
     attr info_label      = 'Test'
     attr min_value       = 0
     attr max_value       = 100
-    attr slider_value    = 0
     attr step_value      = 1
     attr page_step_value = 10
-    attr interval_value  = 5
-    attr tick_postion    = 'no_ticks'
+    attr tick_interval_value  = 5
+    attr tick_postion_value   = 'top'
+    attr intervals       = 0
+
+    attr model = SliderModel( min_value=min_value, max_value=max_value, step_value=step_value,
+                              slider_value=slider_contr.slider_value, intervals=intervals )
 
     border      = Border( line_style='plain', line_width=1 )
     padding     = ( 5, 5, 5, 5 )
@@ -29,27 +102,87 @@ enamldef SliderControl( Container ):
     ]
 
     Slider: sl:
-        minimum       << min_value
-        maximum       << max_value
-        single_step   << step_value
+        minimum       << model.sl_min_value
+        maximum       << model.sl_max_value
+        single_step   << model.sl_step_value
         page_step     << page_step_value
-        tick_interval << interval_value
-        tick_position << tick_postion
+        tick_interval << tick_interval_value
+        tick_position << tick_postion_value
         hug_width     = 'weak'
-        value         := slider_value
+        value         := model.sl_slider_value
+        value ::
+            slider_contr.slider_value = model.scaled_value
 
     Label: l:
         text << info_label
         foreground  = '#000000'
 
     Label: v:
-        text << ( '%d' % sl.value )
+        text << ( '%s' % str( model.scaled_value ) )
         foreground  = '#000000'
 
     Label: mi:
-        text << ( '%d' % min_value )
+        text << ( '%s' % str( model.min_value ) )
         foreground  = '#000000'
 
     Label: mx:
-        text << ( '%d' % max_value )
+        text << ( '%s' % str( model.max_value ) )
         foreground  = '#000000'
+
+    initialized ::
+        if step_value > 1 and intervals > 0:
+            raise Exception( 'Provide either step value or intervals: %s %s' % ( step_value, intervals ) )
+        if step_value == 0 and intervals == 0:
+            raise Exception( 'Must provide either step value or intervals' )
+
+
+# Example
+
+
+enamldef Main( MainWindow ):
+    ''' main test '''
+    title           = 'Slider Tests'
+    initial_size    = ( 600, 300 )
+    attr test_model = TestModel( test_date=pydate.today() )
+
+    Container:
+        padding = 2
+        hug_width  = 'ignore'
+
+        SliderControl: sl1:
+            info_label = 'Test Value 1'
+            min_value = 0
+            max_value = 100
+            slider_value = 0
+            step_value = 1
+            slider_value ::
+                print '>>> value ', slider_value
+
+
+        SliderControl: sl2:
+            info_label = 'Test Value 2'
+            intervals = 100
+            min_value = 0
+            max_value = 1
+            slider_value = 0
+            slider_value ::
+                print '>>> value ', slider_value
+
+        SliderControl: sl3:
+            info_label = 'Test Value 3'
+            min_value = -5
+            max_value = 5
+            intervals = 20
+            slider_value = 0
+            slider_value ::
+                print '>>> value ', slider_value
+
+        SliderControl: sl4:
+            info_label = 'Test Value 4'
+            intervals  = 100
+            min_value = -1
+            max_value = 3
+            slider_value = -1
+            slider_value ::
+                print '>>> value ', slider_value
+

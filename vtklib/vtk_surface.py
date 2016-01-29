@@ -435,7 +435,7 @@ class VTKSurface3D(object):
         if not self.XCutterMapper:
             return None
 
-        scl = self._getXScale()
+        scl = self._getXScale().__wrapped__
 
         def scale(p):
             return p / scl
@@ -465,7 +465,7 @@ class VTKSurface3D(object):
         if not self.YCutterMapper:
             return None
 
-        scl = self._getYscale()
+        scl = self._getYscale().__wrapped__
 
         def scale(p):
             return p / scl
@@ -505,7 +505,7 @@ class VTKSurface3D(object):
         if not self.ZCutterMapper:
             return None
 
-        xscale, yscale = self._getXYScale()
+        xscale, yscale = self._getXYScale().__wrapped__
 
         def scalex(p):
             return p / xscale
@@ -524,6 +524,24 @@ class VTKSurface3D(object):
         """ Return data ranges """
 
         return self.XLimit, self.YLimit, self.ZLimit
+
+    def getXRange(self):
+        """
+        get current xrange
+        """
+        return self.XLimit[1] - self.XLimit[0]
+
+    def getYRange(self):
+        """
+        get current yrange
+        """
+        return self.YLimit[1] - self.YLimit[0]
+
+    def getZRange(self):
+        """
+        get current z range
+        """
+        return self.ZLimit[1] - self.ZLimit[0]
 
     def computeScale(self, shape):
         bounds = shape.GetBounds()
@@ -812,7 +830,7 @@ class VTKSurface3D(object):
             return
 
         if value > self.YLimit[1] * self.YCutterFactor or value < self.YLimit[0] * self.YCutterFactor:
-            logging.error('Y: Value is outside limits %s' % ((value, self.YLimit, self.YCutterFactor),))
+            logging.error('Y: %f Value is outside limits %s' % (value, (self.YLimit, self.YCutterFactor),))
             return
 
         npos = self._calculateYCutterPos(value)
@@ -876,7 +894,7 @@ class VTKSurface3D(object):
             return
 
         if value > self.ZLimit[1] * self.ZCutterFactor or value < self.ZLimit[0] * self.ZCutterFactor:
-            logging.error('Z: Value is outside limits %s' % ((value, self.ZLimit, self.ZCutterFactor),))
+            logging.error('Z: %f Value is outside limits %s' % (value, ( self.ZLimit, self.ZCutterFactor),))
             return
 
         npos = self._calculateZCutterPos(value)
@@ -982,7 +1000,7 @@ class VTKSurface3D(object):
             return
 
         if value > self.XLimit[1] * self.XCutterFactor or value < self.XLimit[0] * self.XCutterFactor:
-            logging.error('X: Value is outside limits %s' % ((value, self.XLimit, self.XCutterFactor),))
+            logging.error('X: %f Value is outside limits %s' % (value, (self.XLimit, self.XCutterFactor),))
             return
 
         npos = self._calculateXCutterPos(value)
@@ -1061,7 +1079,7 @@ class VTKSurface3D(object):
 
         return colorbar
 
-    def parseArgs(self, **args):
+    def parseRenderArgs(self, **args):
         """ parse class args """
         self.XCutterFactor = args.get('XCutterFactor', 1)
         self.YCutterFactor = args.get('YCutterFactor', 1)
@@ -1099,7 +1117,7 @@ class VTKSurface3D(object):
         yCutterPos = args.get('YCutterPos', None)
         zCutterPos = args.get('ZCutterPos', None)
 
-        self.parseArgs(**args)
+        self.parseRenderArgs(**args)
 
         if gridData:
             geometry = vtk.vtkStructuredGridGeometryFilter()

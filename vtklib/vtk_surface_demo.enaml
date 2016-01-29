@@ -2,7 +2,7 @@
 VTk surface demo
 """
 
-from atom.api import Atom, List, Typed, Value, Dict, Str, Int, observe
+from atom.api import Atom, List, Typed, Value, Dict, Str, Int, Float, observe
 from enaml.widgets.color_dialog import ColorDialog
 from enaml.core.api import Include, Conditional
 from enaml.layout.api import hbox, spacer, vbox, align, HSplitLayout, VSplitLayout
@@ -11,8 +11,27 @@ from enaml.application import deferred_call
 from vtk_container import VTKContainer
 from colors import COLOR_MAPS
 from slider import SliderControl
+import math
+
 
 DEFAULT_COLORMAP = 'hot'
+
+
+def roundx( num ):
+    ''' round number '''
+    if num == 0:
+        return 0
+    if num > 0:
+        if num < 1:
+            return math.ceil( num*10. )/10.
+        else:
+            return math.ceil( num )
+
+    if num > -1:
+        return math.floor( num*10. )/10.
+
+    return math.floor( num )
+
 
 def onClose( *args, **kwargs ):
     ''' on close callback '''
@@ -31,19 +50,19 @@ class SurfaceModelController( Atom ):
     view_properties = Dict()
     selected_colormap = Str()
 
-    x_slice_min = Int(0)
-    x_slice_max = Int(10)
-    x_slice_value = Int(0)
+    x_slice_min = Float(0)
+    x_slice_max = Float(10)
+    x_slice_value = Float(0)
     x_slice_data = List()
 
-    y_slice_min = Int(0)
-    y_slice_max = Int(10)
-    y_slice_value = Int(0)
+    y_slice_min = Float(0)
+    y_slice_max = Float(10)
+    y_slice_value = Float(0)
     y_slice_data = List()
 
-    z_slice_min = Int(0)
-    z_slice_max = Int(10)
-    z_slice_value = Int(0)
+    z_slice_min = Float(0)
+    z_slice_max = Float(10)
+    z_slice_value = Float(0)
     z_slice_data = List()
 
     def __init__( self, data_values ):
@@ -100,21 +119,25 @@ class SurfaceModelController( Atom ):
     def on_data_range( self, *args, **kwargs ):
         """ pass data range """
         ranges = args[0]
-        self.x_slice_min = int( round( ranges[0][0] ) )
-        self.x_slice_max = int( round( ranges[0][1] ) )
-        self.x_slice_value = int( round( ranges[0][0] ) )
+        print '>>> ranges ', ranges
+        self.x_slice_min = roundx( ranges[0][0] )
+        self.x_slice_max = roundx( ranges[0][1] )
+        self.x_slice_value = roundx( ranges[0][0] )
         self.view_properties.update( { 'XCutterPos': self.x_slice_value  } )
         self.vtk_container.properties.update( { 'XCutterPos': self.x_slice_value  } )
-        self.y_slice_min = int( round( ranges[1][0] ) )
-        self.y_slice_max = int( round( ranges[1][1] ) )
-        self.y_slice_value = int( round( ranges[1][0] ) )
+
+        self.y_slice_min = roundx( ranges[1][0] )
+        self.y_slice_max = roundx( ranges[1][1] )
+        self.y_slice_value = roundx( ranges[1][0] )
         self.view_properties.update( { 'YCutterPos': self.y_slice_value  } )
         self.vtk_container.properties.update( { 'YCutterPos': self.y_slice_value  } )
-        self.z_slice_min = int( round( ranges[2][0] ) )
-        self.z_slice_max = int( round( ranges[2][1] ) )
-        self.z_slice_value = int( round( ranges[2][0] ) )
+
+        self.z_slice_min = roundx( ranges[2][0] )
+        self.z_slice_max = roundx( ranges[2][1] )
+        self.z_slice_value = roundx( ranges[2][0] )
         self.view_properties.update( { 'ZCutterPos': self.z_slice_value  } )
         self.vtk_container.properties.update( { 'ZCutterPos': self.z_slice_value  } )
+
         deferred_call( self.vtk_container.vtk_view.render )
 
     def on_close(self, *args, **kwargs):
@@ -145,6 +168,7 @@ enamldef ControlsDockItem( DockItem ): dock_ctrl:
             info_label = 'X Slice'
             min_value << nonlocals.controller.x_slice_min
             max_value << nonlocals.controller.x_slice_max
+            intervals << 10
             slider_value = nonlocals.controller.x_slice_value
             slider_value ::
                 nonlocals.controller.x_slice_value = slider_value
@@ -153,6 +177,7 @@ enamldef ControlsDockItem( DockItem ): dock_ctrl:
             info_label = 'Y Slice'
             min_value << nonlocals.controller.y_slice_min
             max_value << nonlocals.controller.y_slice_max
+            intervals << 10
             slider_value = nonlocals.controller.y_slice_value
             slider_value ::
                 nonlocals.controller.y_slice_value = slider_value
@@ -161,6 +186,7 @@ enamldef ControlsDockItem( DockItem ): dock_ctrl:
             info_label = 'Z Slice'
             min_value << nonlocals.controller.z_slice_min
             max_value << nonlocals.controller.z_slice_max
+            intervals << 10
             slider_value = nonlocals.controller.z_slice_value
             slider_value ::
                 nonlocals.controller.z_slice_value = slider_value

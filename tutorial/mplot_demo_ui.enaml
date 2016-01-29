@@ -10,8 +10,10 @@ from matplotlib import style
 import pandas as pd
 import numpy as np
 
+
 START_DATE = '2012/1/1'
 PERIODS = 500
+
 
 fig1 = Figure()
 ts = pd.Series(np.random.randn(PERIODS), index=pd.date_range(START_DATE, periods=PERIODS))
@@ -19,11 +21,12 @@ ts = ts.cumsum()
 ax1 = fig1.add_subplot(111, title='Data 1', xlabel='Dates', ylabel='Data')
 ax1.plot(ts.index, ts.values, linestyle='', marker='x', linewidth=2)
 
+
 fig2 = Figure()
 ts2 = pd.Series(np.random.randn(PERIODS), index=pd.date_range(START_DATE, periods=PERIODS))
 ts2 = ts2.cumsum()
 ax2 = fig2.add_subplot(111, title='Data2', xlabel='Dates', ylabel='Data')
-ax2.plot(ts2.index, ts2.values, linestyle='_', marker='o', linewidth=4)
+ax2.plot(ts2.index, ts2.values, linestyle='-', marker='o', linewidth=4)
 
 
 figures = {
@@ -73,7 +76,7 @@ enamldef Main(Window):
             checked := canvas.toolbar_visible
 
         MPLCanvas: canvas:
-            figure << figures[cbox.selected_item]
+            figure << figures[ cbox.selected_item ]
             toolbar_location << obox.selected
             event_actions << [ ( 'key_press_event', on_key_press ), ]
 
