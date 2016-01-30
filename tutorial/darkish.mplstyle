@@ -1,8 +1,8 @@
 #Author: Pawel Potocki
 
 #backend      : macosx
-#backend.qt4 : PyQt4 
-toolbar      : toolbar2
+#backend.qt4  : PyQt4
+toolbar       : toolbar2
 
 
 lines.linewidth: 2
@@ -11,7 +11,8 @@ lines.antialiased : True
 
 legend.fancybox: true
 
-axes.color_cycle: AB51BA, CC7832, 628759, 4674A9, B53B48, 808080, 30a2da, fc4f30, e5ae38, 6d904f, 8b8b8b
+axes.prop_cycle: cycler('color', ['AB51BA', 'CC7832', '628759', '4674A9', 'B53B48', '808080', '30a2da', 'fc4f30', 'e5ae38', '6d904f', '8b8b8b'])
+
 axes.facecolor: 2B2B2B # 272B30
 axes.labelsize: large
 axes.axisbelow: true
@@ -39,7 +40,7 @@ xtick.minor.size: 0
 xtick.direction: out
 
 ytick.color: DDDDDD
-ytick.major.size: 1
+ytick.major.size: 3
 ytick.minor.size: 0
 ytick.direction: out
 
@@ -54,4 +55,3 @@ figure.subplot.right: 0.95
 figure.subplot.bottom: 0.09
 figure.facecolor: 2B2B2B # 272B30
 figure.edgecolor: DDDDDD # 2B2B2B # 272B30
-
