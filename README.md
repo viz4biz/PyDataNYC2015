@@ -22,6 +22,8 @@ folder into enaml folder in your anaconda distribution:
 ```sh
 $ cp mpl_canvas.py vtk_canvas.py anaconda/lib/python2.7/site-packages/enaml/widgets
 $ cp qt_mpl_canvas.py qt_vtk_canvas.py anaconda/lib/python2.7/site-packages/enaml/qt
+
+or run provided script: enaml_patch.sh after editing your directory location.
 ```
 
 You need to edit constants.py file in tutorial folder to reflect icons and data
