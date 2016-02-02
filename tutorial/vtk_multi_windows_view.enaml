@@ -67,6 +67,7 @@ class ModelController( Atom ):
 
     def onContour( self, val, views=None ):
         ''' contour control '''
+        val = int(val)
         self.ShapeContour.GenerateValues( val, *self.ValueRange )
         self.ContContour.GenerateValues( val, *self.ValueRange )
         self.ContZContour.GenerateValues( val, *self.ValueRange )
@@ -76,6 +77,7 @@ class ModelController( Atom ):
 
     def onSlicing( self, val, views ):
         ''' slice data '''
+        val = int(val)
         self.XSlicer.SetVOI(0, 29, 0, 29, val, val)
         self.ZSlicer.SetVOI(0, 29, val, val, 0, 29)
         if views:

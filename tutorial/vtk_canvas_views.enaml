@@ -66,6 +66,7 @@ class RenderController( VTKRenderController ):
 
     def onContour( self, val, view=None ):
         ''' contour control '''
+        val = int(val)
         self._ShapeContour.GenerateValues( val, *self._range )
         self._ContContour.GenerateValues( val, *self._range )
         if view:

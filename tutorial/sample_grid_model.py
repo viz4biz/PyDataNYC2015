@@ -89,8 +89,8 @@ class SurfaceModel(Atom):
 
         # Read some structured data.
         pl3d = vtk.vtkMultiBlockPLOT3DReader()
-        pl3d.SetXYZFileName(VTK_DATA_ROOT + "/Data/combxyz.bin")
-        pl3d.SetQFileName(VTK_DATA_ROOT + "/Data/combq.bin")
+        pl3d.SetXYZFileName(VTK_DATA_ROOT + "/combxyz.bin")
+        pl3d.SetQFileName(VTK_DATA_ROOT + "/combq.bin")
         pl3d.SetScalarFunctionNumber(100)
         pl3d.SetVectorFunctionNumber(202)
         pl3d.Update()
