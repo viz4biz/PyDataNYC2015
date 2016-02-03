@@ -47,3 +47,6 @@ to enaml team
 
  2. Simple scatter plot
  ![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/mplotlib_demo2.png "Scatter Plot")
+
+ 3. Multi line plot
+ ![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/mplotlib_demo3.png "Multiline Plot")
