@@ -39,3 +39,10 @@ to enaml team
  - data: this folder contains some data files used in this tutorial
  - icons: various icons
  - slides: slides from the presentation
+
+---
+
+ ###Matplotlib examples
+
+ 1. Scatter plot animation
+ ![alt text](https://github.com/viz4biz/PyDataNYC2015/tree/master/images/mplot_demo1.png "Scatter Plot Animation")
