@@ -45,4 +45,4 @@ to enaml team
  ###Matplotlib examples
 
  1. Scatter plot animation
- ![alt text](https://github.com/viz4biz/PyDataNYC2015/tree/master/images/mplot_demo1.png "Scatter Plot Animation")
+ ![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/mplotlib_demo1.png "Scatter Plot Animation")
