@@ -1,5 +1,5 @@
 """
-Mplot demo runner
+Mplot demo - run animated example
 """
 
 import enaml
@@ -8,12 +8,6 @@ from enaml.qt.qt_application import QtApplication
 
 def run_demo():
     with enaml.imports():
-        #from mplot_demo_dynamic import Main
-        #from mplot_demo_realtime import Main
-        #from mplot_demo_multi import Main
-        #from mplot_demo_docks import Main
-        #from mplot_demo_controls import Main
-        #from mplot_demo_scatter import Main
         from mplot_demo_scatter_animate import Main
 
     app = QtApplication()
