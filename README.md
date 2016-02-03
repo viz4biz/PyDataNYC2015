@@ -40,9 +40,10 @@ to enaml team
  - icons: various icons
  - slides: slides from the presentation
 
----
-
- ###Matplotlib examples
+###Matplotlib Examples
 
  1. Scatter plot animation
  ![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/mplotlib_demo1.png "Scatter Plot Animation")
+
+ 2. Simple scatter plot
+ ![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/mplotlib_demo2.png "Scatter Plot")
