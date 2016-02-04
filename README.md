@@ -67,7 +67,7 @@ to enaml development team
 ![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/vtk_multi_window_demo1.png "Multi window plot")
 
 2. Multi docking example - vtk_canvas_docks_model_run.py
-![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/vtk_docking_demo11.png "Multi docking plot")
+![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/vtk_docking_demo1.png "Multi docking plot")
 
 3. Surface example - vtk_surface_run.py
 ![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/vtk_surface_demo1.png "Surface plot")
