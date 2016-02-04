@@ -8,9 +8,9 @@ from enaml.qt.qt_application import QtApplication
 
 def run_demo():
     with enaml.imports():
-        from mplot_demo_ui import Main
+        #from mplot_demo_ui import Main
         #from mplot_lines_demo import Main
-        #from mplot_lines_dynamic import Main
+        from mplot_lines_dynamic import Main
 
     app = QtApplication()
 
