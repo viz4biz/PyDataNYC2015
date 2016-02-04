@@ -29,7 +29,7 @@ or run provided script: enaml_patch.sh after editing your directory location.
 You need to edit constants.py file in tutorial and vtklib folders to reflect icons and data
 location on your machine.
 
-You can alos copy provided custom matplotlib style - darkish.mplstyle into matplotlib resource
+You can also copy provided custom matplotlib style - darkish.mplstyle into matplotlib resource
 directory:
 
 ```sh
@@ -62,3 +62,6 @@ to enaml development team
  ![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/mplotlib_demo4.png "Multiline Plot")
 
 ###VTK Examples
+
+1. Multi window example - vtk_multi_window_run.py
+![alt text](https://github.com/viz4biz/PyDataNYC2015/blob/master/images/vtk_multi_window_demo1.png "Multi window plot")
