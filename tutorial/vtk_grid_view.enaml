@@ -55,7 +55,7 @@ def create_renderer():
     filter.SetInputData(grid)
     filter.SetExtent(grid.GetExtent())
 
-    print filter
+    print '>>> filter ', filter
 
     grid_mapper = vtk.vtkPolyDataMapper()
     grid_mapper.SetInputConnection(filter.GetOutputPort())

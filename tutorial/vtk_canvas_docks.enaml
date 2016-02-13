@@ -5,7 +5,8 @@ vtk canvas docks example
 from atom.api import Atom, Dict, Str, observe, Value, Int
 from enaml.core.api import Include, Conditional
 from enaml.layout.api import hbox, spacer, vbox, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
-from enaml.widgets.api import MainWindow, Container, Label, PushButton, ObjectCombo, GroupBox, CheckBox, MenuBar, Menu, DockPane, DockArea, DockItem, Action, VTKCanvas
+from enaml.widgets.api import ( MainWindow, Container, Label, PushButton, ObjectCombo, GroupBox,
+    CheckBox, MenuBar, Menu, DockPane, DockArea, DockItem, Action, VTKCanvas )
 from scenes import create_renderer
 
 

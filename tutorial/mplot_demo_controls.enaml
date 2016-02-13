@@ -5,7 +5,8 @@ Matplotlib demo
 from atom.api import Atom, Str, List, Value, Int, observe
 from enaml.core.api import Include, Conditional
 from enaml.layout.api import vbox, hbox, spacer, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
-from enaml.widgets.api import Window, Container, CheckBox, ComboBox, ObjectCombo, Label, PopupView, Form, Slider, Field, PushButton, DockArea, DockItem, GroupBox
+from enaml.widgets.api import ( Window, Container, CheckBox, ComboBox, ObjectCombo, Label, PopupView, Form, Slider,
+    Field, PushButton, DockArea, DockItem, GroupBox )
 from mpl_canvas_container import MPLCanvasContainer
 from utils import load_icon
 from colors import LINE_COLORS

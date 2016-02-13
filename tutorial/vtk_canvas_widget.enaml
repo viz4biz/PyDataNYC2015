@@ -3,7 +3,8 @@ VTK Canvas widget
 """
 
 from enaml.layout.api import hbox, spacer, vbox
-from enaml.widgets.api import Container, Label, PushButton, ObjectCombo, PopupView, Label, Slider, Field, Form, VTKCanvas, SpinBox
+from enaml.widgets.api import ( Container, Label, PushButton, ObjectCombo, PopupView, Label, Slider, Field, Form,
+    VTKCanvas, SpinBox )
 from utils import load_icon
 
 

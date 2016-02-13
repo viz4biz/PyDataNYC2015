@@ -14,12 +14,12 @@ enamldef VTKCanvasWrapper( Container ):
     attr controller
 
     padding = 5
-    constraints = [ vbox( view, controlls ) ]
+    constraints = [ vbox( view, controls ) ]
 
     VTKCanvas: view:
         renderer << controller.get_renderers()[0]
 
-    Container: controlls:
+    Container: controls:
 
         constraints = [ hbox( l, b, o, spacer ), align( 'v_center', l, b, o ) ]
         Label: l:

@@ -5,7 +5,8 @@ vtk multi window
 from atom.api import Atom, Value, List
 from enaml.core.api import Include, Conditional
 from enaml.layout.api import hbox, spacer, vbox, align, VSplitLayout, HSplitLayout, InsertItem, FloatItem
-from enaml.widgets.api import MainWindow, Container, Label, PushButton, ObjectCombo, GroupBox, CheckBox, MenuBar, Menu, DockArea, DockItem, Action, VTKCanvas
+from enaml.widgets.api import ( MainWindow, Container, Label, PushButton, ObjectCombo, GroupBox, CheckBox, MenuBar,
+    Menu, DockArea, DockItem, Action, VTKCanvas )
 from scenes import create_renderer
 from multi_set_model import RenderViewController, get_all_actors
 from utils import load_icon

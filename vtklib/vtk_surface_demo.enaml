@@ -6,7 +6,8 @@ from atom.api import Atom, List, Typed, Value, Dict, Str, Int, Float, observe
 from enaml.widgets.color_dialog import ColorDialog
 from enaml.core.api import Include, Conditional
 from enaml.layout.api import hbox, spacer, vbox, align, HSplitLayout, VSplitLayout
-from enaml.widgets.api import MainWindow, Container, MenuBar, Border, Menu, Action, Label, PushButton, DockArea, DockItem, DockPane, ObjectCombo, GroupBox
+from enaml.widgets.api import  ( MainWindow, Container, MenuBar, Border, Menu, Action, Label, PushButton,
+    DockArea, DockItem, DockPane, ObjectCombo, GroupBox )
 from enaml.application import deferred_call
 from vtk_container import VTKContainer
 from colors import COLOR_MAPS
