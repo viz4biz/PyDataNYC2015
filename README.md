@@ -20,8 +20,8 @@ folder into enaml folder in your anaconda distribution:
 
 
 ```sh
-$ cp mpl_canvas.py vtk_canvas.py anaconda/lib/python2.7/site-packages/enaml/widgets
-$ cp qt_mpl_canvas.py qt_vtk_canvas.py anaconda/lib/python2.7/site-packages/enaml/qt
+$ cp mpl_canvas.py vtk_canvas.py ~/anaconda/lib/python2.7/site-packages/enaml/widgets
+$ cp qt_mpl_canvas.py qt_vtk_canvas.py ~/anaconda/lib/python2.7/site-packages/enaml/qt
 
 or run provided script: enaml_patch.sh after editing your directory location.
 ```
@@ -33,8 +33,16 @@ You can also copy provided custom matplotlib style - darkish.mplstyle into matpl
 directory:
 
 ```sh
-$ cp darkish.mplstyle anaconda/lib/python2.7/site-packages/matplotlib/mpl-data/stylelib
+$ cp darkish.mplstyle ~/anaconda/lib/python2.7/site-packages/matplotlib/mpl-data/stylelib
 ```
+
+You can use provided Enaml filetype definition Enaml.xml to use with PyCharm50
+to enable color syntax recognition of common Python and Enaml keywords.
+
+```sh
+$ cp Enaml.xml ~/Library/Preferences/PyCharm50/filetypes
+```
+
 
 ###Contents
 
@@ -46,6 +54,7 @@ to enaml development team
  - icons: various icons
  - slides: slides from the presentation
  - images: images for this README file
+ - pycharm: PyCharm50 Enaml filetype definition
 
 ###Matplotlib Examples
 
